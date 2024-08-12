@@ -15,7 +15,7 @@ jobs:
 
     - name: Decode .env file
       run: |
-        echo "${{ secrets.ENV_FILE }}" | base64 -d > .env
+        echo "${{ secrets.ENV_FILE }}" > .env
         # Verify the .env file was created correctly
         cat .env
 
