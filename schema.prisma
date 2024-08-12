@@ -10,9 +10,12 @@ datasource db {
 model users {
   user_id              String         @id @default(uuid())
   name                 String         @db.VarChar(255)
-  lastName             String?        @db.VarChar(255)
-  email                String?        @unique @db.VarChar(255)
-  passwordHash         String         @db.VarChar(255)
+  lastName     String?  @db.VarChar(255)
+  email        String?  @unique @db.VarChar(255)
+  photoUrl     String?  @db.VarChar(255)
+  mobileNumber  String?  @db.VarChar(255)
+  organisation  String?  @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
   created_at           DateTime       @default(now())
   updated_at           DateTime       @updatedAt
   bots                 bots[]
@@ -59,6 +62,7 @@ model bots {
   status           String          @default("notActive")
   token_limit      Int             @default(8000000)
   token_limit_pp   Int             @default(8000)
+  update_datasource Int             @default(0)
   datasource       datasources[]
   user             users           @relation(fields: [user_id], references: [user_id])
   conversations    conversations[]
@@ -69,6 +73,7 @@ model datasources {
   datasource_id  String  @id @default(uuid())
   bot_id         String
   static_files   Json?   @default("[]")
+  files_info     Json?   @default("[]")
   urls           Json?   @default("[]")
   text_input     String? @default("") @db.VarChar(255)
   qANDa_input    Json?   @default("[]")
