@@ -2,6 +2,26 @@
 # ---- Build Stage ----
     FROM node:20-slim AS builder
     WORKDIR /app
+
+    # Define build arguments
+ARG CALLBACK_URL
+ARG DB_URL
+ARG GOOGLE_CLIENT_ID
+ARG GOOGLE_CLIENT_SECRET
+ARG HOST
+ARG JWT_SECRET
+ARG KAFKA_BROKER
+ARG SALT_BCRYPT
+
+# Set environment variables from build arguments
+ENV CALLBACK_URL=$CALLBACK_URL
+ENV DB_URL=$DB_URL
+ENV GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+ENV GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+ENV HOST=$HOST
+ENV JWT_SECRET=$JWT_SECRET
+ENV KAFKA_BROKER=$KAFKA_BROKER
+ENV SALT_BCRYPT=$SALT_BCRYPT
     
     # Copy package.json and package-lock.json
     COPY package*.json ./
@@ -20,6 +40,27 @@
     # ---- Production Stage ----
     FROM node:20-alpine AS production
     WORKDIR /app
+
+# Define build arguments
+ARG CALLBACK_URL
+ARG DB_URL
+ARG GOOGLE_CLIENT_ID
+ARG GOOGLE_CLIENT_SECRET
+ARG HOST
+ARG JWT_SECRET
+ARG KAFKA_BROKER
+ARG SALT_BCRYPT
+
+# Set environment variables from build arguments
+ENV CALLBACK_URL=$CALLBACK_URL
+ENV DB_URL=$DB_URL
+ENV GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+ENV GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+ENV HOST=$HOST
+ENV JWT_SECRET=$JWT_SECRET
+ENV KAFKA_BROKER=$KAFKA_BROKER
+ENV SALT_BCRYPT=$SALT_BCRYPT
+
     # Copy package.json and package-lock.json
     COPY package*.json ./
     # Install Prisma globally
