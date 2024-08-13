@@ -25,10 +25,24 @@ export class S3Service {
       throw error;
     }
   }
-
-  async uploadFile(bucketName: string, objectName: string, filePath: string): Promise<void> {
+  async ensureBucketExists(bucketName: string): Promise<void> {
     try {
-      const fileContent = require('fs').readFileSync(filePath);
+      // Check if the bucket exists
+      await this.s3.headBucket({ Bucket: bucketName }).promise();
+      this.logger.log(`Bucket ${bucketName} already exists.`);
+    } catch (error) {
+      if (error.code === 'NotFound') {
+        // Bucket does not exist, so create it
+        await this.createBucket(bucketName);
+      } else {
+        // Handle other potential errors
+        this.logger.error(`Error checking bucket ${bucketName}`, error.stack);
+        throw error;
+      }
+    }
+  }
+  async uploadFile(bucketName: string, objectName: string, fileContent: Buffer): Promise<void> {
+    try {
       await this.s3.putObject({
         Bucket: bucketName,
         Key: objectName,
@@ -40,7 +54,6 @@ export class S3Service {
       throw error;
     }
   }
-
   async downloadFile(bucketName: string, objectName: string, downloadPath: string): Promise<void> {
     try {
       const data = await this.s3.getObject({
@@ -51,6 +64,19 @@ export class S3Service {
       this.logger.log(`File ${objectName} downloaded successfully from ${bucketName}`);
     } catch (error) {
       this.logger.error(`Error downloading file ${objectName} from ${bucketName}`, error.stack);
+      throw error;
+    }
+  }
+
+  async deleteFile(bucketName: string, key: string): Promise<void> {
+    try {
+      await this.s3.deleteObject({
+        Bucket: bucketName,
+        Key: key,
+      }).promise();
+      this.logger.log(`File ${key} deleted successfully from ${bucketName}`);
+    } catch (error) {
+      this.logger.error(`Error deleting file ${key} from ${bucketName}`, error.stack);
       throw error;
     }
   }

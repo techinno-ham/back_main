@@ -11,7 +11,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common/decorators';
-
 import { MyBotsService } from './bots.service';
 import { BotCreate, BotUpdateDataSource, CreateConversationDto } from './dtos/mybots.dto';
 
@@ -43,6 +42,9 @@ export class MyBotsController {
 
   @Post('/create')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FilesInterceptor('files', 7),
+  )
   async createBots(
     @UploadedFiles() files: any,
     @Body() botsDTO: BotCreate,
@@ -74,23 +76,26 @@ export class MyBotsController {
       
       const bucketName = `${createdBot.bot_id}`;
       const fileUrlPrefix = process.env.IMAGE_URL_PREFIX || 'http://localhost:12000';
+      const fileId = uuidv4();  // Generate a UUID for each file
       await this.s3Service.createBucket(bucketName);
   
       const filesInfo = await Promise.all(
         files.map(async (file) => {
           const originalName = iconv.decode(Buffer.from(file.originalname, 'binary'), 'utf8');
-          await this.s3Service.uploadFile(bucketName, originalName, file.path);
+          await this.s3Service.uploadFile(bucketName, originalName, file.buffer);
           
           return {
             link: `${fileUrlPrefix}/${bucketName}/${originalName}`,
             size: file.size,
             name: originalName,
+            id: fileId,
+        
           };
         }),
       );
+
   
       data['files_info'] = filesInfo;
-      data['static_files'] = filesInfo.map((file) => file.link);
     }
   
 
@@ -134,26 +139,7 @@ export class MyBotsController {
   @Post("/dataSource/update/:bot_id")
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FilesInterceptor('files', 7, {
-      storage: multer.diskStorage({
-        destination: function (req, file, cb) {
-          const destinationPath = `${cwd()}/uploads/tmp`;
-
-          if (!existsSync(destinationPath)) {
-            try {
-              mkdirSync(destinationPath, { recursive: true }); // Ensure parent directories are created
-            } catch (err) {
-              return cb(err);
-            }
-          }
-
-          cb(null, destinationPath);
-        },
-        filename: function (req, file, cb) {
-          cb(null, file.originalname);
-        },
-      }),
-    }),
+    FilesInterceptor('files', 7),
   )
   async updateDataSource(
     @UploadedFiles() files: any,
@@ -180,39 +166,32 @@ export class MyBotsController {
 
 
     const { uploadedFile: uploadedFileStr, ...data } = botsDTO;
-    console.log(data)
    
     const result = await this.mybotsServices.findeDataSource(botId,user.user_id);
-    let static_files = result.static_files;
-     data['static_files']=static_files;
+    let files_info = result.files_info;
+     data['files_info']=files_info;
 
     // step 1 (check file delted ):
     let uploadedFile = [];
        if (botsDTO.uploadedFile) {
           uploadedFile = JSON.parse(botsDTO.uploadedFile);
-          console.log(uploadedFile)
       }
       if(uploadedFile.length > 0){
         for (const file of uploadedFile) {
-          const { url, fileName, remove } = file;
+          const {name, remove } = file;
           
           // // Check if file needs to be removed
           if (remove === "true" || remove==true) {
             try {
-              // Construct the file path
-              const filePath = `${cwd()}/uploads/${botId}/${fileName}`;
-    
-              // Check if file exists and delete it
-              if (existsSync(filePath)) {
-                unlinkSync(filePath);
-              }
+              console.log(name)
+              await this.s3Service.deleteFile(botId, name);
             } catch (error) {
-              throw new HttpException(`Failed to delete file ${fileName}`, 500);
+              throw new HttpException(`Failed to delete file ${name}`, 500);
             }
           }
         };
-        data['static_files'] = static_files.filter(url => {
-          const uploaded = uploadedFile.find(upFile => upFile.url === url);
+        data['files_info'] = files_info.filter(file => {
+          const uploaded = uploadedFile.find(upFile => upFile.name === file.name && upFile.id==file.id);
           return !(uploaded && (uploaded.remove == "true" || uploaded.remove == true));
         });
 
@@ -221,27 +200,28 @@ export class MyBotsController {
 
 
         if (files?.length > 0) {
-          const targetDir = `${cwd()}/uploads/${botId}`;
-          if (!existsSync(targetDir)) {
-            mkdirSync(targetDir, { recursive: true });
-          }
-          
-          const tempDir = `${cwd()}/uploads/tmp`;
-          const tempFiles = readdirSync(tempDir);
-      
-          for (const file of tempFiles) {
-            const tempFilePath = `${tempDir}/${file}`;
-            const targetFilePath = `${targetDir}/${file}`;
-            copyFileSync(tempFilePath, targetFilePath);
-            unlinkSync(tempFilePath); 
-          };
+          const bucketName = `${botId}`;
+          const fileUrlPrefix = process.env.IMAGE_URL_PREFIX || 'http://localhost:12000';
+          const fileId = uuidv4();  // Generate a UUID for each file
+          await this.s3Service.ensureBucketExists(bucketName);
 
-         rmdirSync(tempDir, { recursive: true });
 
-          const fileUrlPrefix =
-          process.env.IMAGE_URL_PREFIX || 'http://localhost:12000';
-          const fileLinks = files.map(file => `${fileUrlPrefix}/uploads/${botId}/${file.originalname}`);
-          data['static_files'] = [...data['static_files'],...fileLinks]
+          const filesInfo = await Promise.all(
+            files.map(async (file) => {
+              const originalName = iconv.decode(Buffer.from(file.originalname, 'binary'), 'utf8');
+              await this.s3Service.uploadFile(bucketName, originalName, file.buffer);
+              
+              return {
+                link: `${fileUrlPrefix}/${bucketName}/${originalName}`,
+                size: file.size,
+                name: originalName,
+                id: fileId,
+            
+              };
+            }),
+          );
+    
+          data['files_info'] = [...data['files_info'],...filesInfo]
 
         };
        
