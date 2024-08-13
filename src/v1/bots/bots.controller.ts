@@ -227,6 +227,7 @@ export class MyBotsController {
        
      
         const updatedDataSource=await this.mybotsServices.updateDataSource(data,result.datasource_id);
+        await this.mybotsServices.incrementUpdateDataSource(botId,user.user_id);
         return updatedDataSource;
 
        

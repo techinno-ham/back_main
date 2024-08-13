@@ -40,8 +40,8 @@ export class MyBotsService {
       botId,
       datasources: {
         ...(data.text_input && { text: data.text_input }),
-        ...(data.qANDa_input && { qa: JSON.parse(data.qANDa_input) }),
-        ...(data.urls && { urls: JSON.parse(data.urls) }),
+        ...(data.qANDa_input && { qa: data.qANDa_input }),
+        ...(data.urls && { urls: data.urls }),
         ...(data.static_files && { files: data.static_files }),
       },
     };
@@ -77,16 +77,17 @@ export class MyBotsService {
       greet_msgs: ["سلام ! امروز چطور می‌توانم به شما کمک کنم؟"],
       notification_msgs: ["سلام ! امروز چطور می‌توانم به شما کمک کنم؟"],
       action_btns: ["چگونه میتونم بات بسازم؟"],
-      placeholder_msg: "چگونه میتونم بات بسازم؟",
+      placeholder_msg: "پیام شما ...",
       input_types: [],
       ask_credentials: {},
       footer_msg: "hamyar.chat",
-      bot_name: "hamyar.chat",
-      user_msg_bg_color: "#ffff",
+      bot_name: "raya chat",
+      theme_bot:"light",
+      user_msg_bg_color: "#3b81f6",
       bot_image: "https://test.png",
-      bot_widget_bg_color: "#FFF",
-      bot_widget_position: "left",
-      init_msg_delay: "20",
+      bot_widget_border_color: "#6495ed",
+      bot_widget_position: "start",
+      init_msg_delay: 20,
     };
     const securityConfigs = {
       access_bot: "private",
@@ -168,7 +169,7 @@ export class MyBotsService {
 
 
   async createDataSource(data: any) {
-    console.log({ data });
+    console.log({data});
 
     try {
       const createdDataSource = await this.prismaService.datasources.create({
@@ -301,6 +302,8 @@ export class MyBotsService {
           bot: {
             select: {
               user_id: true,
+              update_datasource:true,
+              status:true
             },
           },
         },
@@ -330,6 +333,26 @@ export class MyBotsService {
     }
   };
 
+
+  async incrementUpdateDataSource(botId: string, userId: string): Promise<void> {
+    try {
+      const result = await this.prismaService.bots.update({
+        where: { bot_id: botId, user_id: userId },
+        data: {
+          update_datasource: {
+            increment: 1,
+          },
+        },
+      });
+  
+      if (!result) {
+        throw new HttpException('Failed to update update_datasource', 404);
+      }
+    } catch (error) {
+      console.error('Error incrementing update_datasource:', error);
+      throw new HttpException('Internal Server Error', 500);
+    }
+  }
   async findeConfigs(botId: string,userId: string): Promise<any> {
     try {
       const configs = await this.prismaService.bots.findFirst({
