@@ -80,7 +80,6 @@ ENV SALT_BCRYPT=$SALT_BCRYPT
     # Generate Prisma client
     RUN npx prisma generate
     
-    # Debugging: Print MONGO_URL
     # RUN echo "MONGO_URL=$MONGO_URL"
 
     EXPOSE 12000
