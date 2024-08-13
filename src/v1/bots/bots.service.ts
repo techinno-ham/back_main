@@ -1,5 +1,6 @@
 import {
   HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -79,8 +80,8 @@ export class MyBotsService {
       placeholder_msg: "چگونه میتونم بات بسازم؟",
       input_types: [],
       ask_credentials: {},
-      footer_msg: "raya.chat",
-      bot_name: "raya chat",
+      footer_msg: "hamyar.chat",
+      bot_name: "hamyar.chat",
       user_msg_bg_color: "#ffff",
       bot_image: "https://test.png",
       bot_widget_bg_color: "#FFF",
@@ -316,6 +317,120 @@ export class MyBotsService {
       throw new HttpException('Internal Server Error', 500);
     }
   };
+
+  async countBots(userId: string): Promise<number> {
+    try {
+      return await this.prismaService.bots.count({
+        where: {
+          user_id: userId,
+        },
+      });
+    } catch (error) {
+      throw new HttpException('Failed to count bots', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  };
+
+  async findeConfigs(botId: string,userId: string): Promise<any> {
+    try {
+      const configs = await this.prismaService.bots.findFirst({
+        where: { bot_id: botId },
+        select: {
+          bot_id: true,
+          name: true,
+          created_at: true,
+          updated_at: true,
+          type: true,
+          general_configs: true,
+          model_configs: true,
+          ui_configs: true,
+          security_configs: true,
+          evals: true,
+          status: true,
+      },
+      });
+      if (!configs) {
+        throw new HttpException('datasource not found', 404);
+      };
+  
+      return configs;
+    } catch (error) {
+      console.error('Error finding Configs:', error);
+      throw new HttpException('Internal Server Error', 500);
+    }
+  };
+
+  async updateGeneralConfig(botId: string, userId: string, updateData: { name: string }): Promise<any> {
+    try {
+      const updatedConfig = await this.prismaService.bots.update({
+        where: { bot_id: botId, user_id: userId },
+        data: {
+          name: updateData.name,
+        },
+      });
+      if (!updatedConfig) {
+        throw new HttpException('Update failed', 404);
+      }
+      return updatedConfig;
+    } catch (error) {
+      console.error('Error updating Configs:', error);
+      throw new HttpException('Internal Server Error', 500);
+    }
+  };
+
+  async updateModelConfig(botId: string, userId: string, updateData:{ model_name: string,Temperature:number } ): Promise<any> {
+    try {
+      const updatedConfig = await this.prismaService.bots.update({
+        where: { bot_id: botId, user_id: userId },
+        data: {
+          model_configs:updateData
+        },
+      });
+      if (!updatedConfig) {
+        throw new HttpException('Update failed', 404);
+      }
+      return updatedConfig;
+    } catch (error) {
+      console.error('Error updating Configs:', error);
+      throw new HttpException('Internal Server Error', 500);
+    }
+  };
+
+  async updateUiConfig(botId: string, userId: string, updateData:any ): Promise<any> {
+    try {
+      const updatedConfig = await this.prismaService.bots.update({
+        where: { bot_id: botId, user_id: userId },
+        data: {
+         ui_configs:updateData
+        },
+      });
+      if (!updatedConfig) {
+        throw new HttpException('Update failed', 404);
+      }
+      return updatedConfig;
+    } catch (error) {
+      console.error('Error updating Configs:', error);
+      throw new HttpException('Internal Server Error', 500);
+    }
+  };
+
+  async updateSecurityConfig(botId: string, userId: string, updateData:any ): Promise<any> {
+    try {
+      const updatedConfig = await this.prismaService.bots.update({
+        where: { bot_id: botId, user_id: userId },
+        data: {
+         security_configs:updateData
+        },
+      });
+      if (!updatedConfig) {
+        throw new HttpException('Update failed', 404);
+      }
+      return updatedConfig;
+    } catch (error) {
+      console.error('Error updating Configs:', error);
+      throw new HttpException('Internal Server Error', 500);
+    }
+  };
+
 
   
 }

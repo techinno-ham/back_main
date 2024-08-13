@@ -1,4 +1,4 @@
-import { Controller, Get, HttpException, Post, Headers } from '@nestjs/common';
+import { Controller, Get, HttpException, Post, Headers, HttpStatus } from '@nestjs/common';
 import {
   Body,
   Delete,
@@ -26,37 +26,23 @@ import { chownSync, copyFileSync, existsSync, mkdirSync, readdirSync, renameSync
 import { v4 as uuidv4 } from 'uuid';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { error } from 'console';
+import { S3Service } from 'src/infrastructure/s3/s3.service';
+import * as iconv from 'iconv-lite';
 
 @Controller({
   path: 'mybots',
   version: '1',
 })
 export class MyBotsController {
-  constructor(private readonly mybotsServices: MyBotsService) {}
+  constructor(
+    private readonly mybotsServices: MyBotsService,
+    private readonly s3Service: S3Service,
+  ) {}
+
+
+
   @Post('/create')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(
-    FilesInterceptor('files', 7, {
-      storage: multer.diskStorage({
-        destination: function (req, file, cb) {
-          const destinationPath = `${cwd()}/uploads/tmp`;
-
-          if (!existsSync(destinationPath)) {
-            try {
-              mkdirSync(destinationPath, { recursive: true }); // Ensure parent directories are created
-            } catch (err) {
-              return cb(err);
-            }
-          }
-
-          cb(null, destinationPath);
-        },
-        filename: function (req, file, cb) {
-          cb(null, file.originalname);
-        },
-      }),
-    }),
-  )
   async createBots(
     @UploadedFiles() files: any,
     @Body() botsDTO: BotCreate,
@@ -85,20 +71,34 @@ export class MyBotsController {
     };
 
     if (files?.length) {
-      renameSync(
-        `${cwd()}/uploads/tmp`,
-        `${cwd()}/uploads/${createdBot.bot_id}`,
+      
+      const bucketName = `${createdBot.bot_id}`;
+      const fileUrlPrefix = process.env.IMAGE_URL_PREFIX || 'http://localhost:12000';
+      await this.s3Service.createBucket(bucketName);
+  
+      const filesInfo = await Promise.all(
+        files.map(async (file) => {
+          const originalName = iconv.decode(Buffer.from(file.originalname, 'binary'), 'utf8');
+          await this.s3Service.uploadFile(bucketName, originalName, file.path);
+          
+          return {
+            link: `${fileUrlPrefix}/${bucketName}/${originalName}`,
+            size: file.size,
+            name: originalName,
+          };
+        }),
       );
-      const fileUrlPrefix =
-        process.env.IMAGE_URL_PREFIX || 'http://localhost:12000';
-        const fileLinks = files.map(file => `${fileUrlPrefix}/uploads/${createdBot.bot_id}/${file.originalname}`);
-        data['static_files'] = fileLinks;
+  
+      data['files_info'] = filesInfo;
+      data['static_files'] = filesInfo.map((file) => file.link);
     }
+  
 
     const createdDataSource = await this.mybotsServices.createDataSource(data);
 
     return createdDataSource;
   };
+
 
 
 
@@ -117,6 +117,18 @@ export class MyBotsController {
       user.user_id,
     );
   };
+
+  @Get('/count')
+  @UseGuards(JwtAuthGuard)
+  async countBots(@User() user: any) {
+    try {
+      const count = await this.mybotsServices.countBots(user.user_id);
+      return { count };
+    } catch (error) {
+      throw new HttpException('Failed to retrieve bot count', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   
 
   @Post("/dataSource/update/:bot_id")
@@ -255,6 +267,94 @@ export class MyBotsController {
     }
 
   }
+
+
+  @Get('/configs/:bot_id')
+  @UseGuards(JwtAuthGuard)
+  async getCinfigsBot(@Param('bot_id') botId: string,@User() user: any){
+    try {
+      const result = await this.mybotsServices.findeConfigs(botId,user.user_id);
+      if (!result) {
+        throw new HttpException('configs not found ...', 404);
+      }
+      return result;
+    } catch (error) {
+      throw new HttpException('Failed to get your configs', 500);
+    }
+
+  };
+
+  @Post('/configs/updateGeneral/:bot_id')
+@UseGuards(JwtAuthGuard)
+async updateGeneralConfig(
+  @Param('bot_id') botId: string,
+  @User() user: any,
+  @Body() updateData: { name: string },
+) {
+  try {
+    const result = await this.mybotsServices.updateGeneralConfig(botId, user.user_id, updateData);
+    if (!result) {
+      throw new HttpException('Update failed', 404);
+    }
+    return result;
+  } catch (error) {
+    throw new HttpException('Failed to update your configs', 500);
+  }
+};
+
+@Post('/configs/updateModel/:bot_id')
+@UseGuards(JwtAuthGuard)
+async updateModelConfig(
+  @Param('bot_id') botId: string,
+  @User() user: any,
+  @Body() updateData: { model_name: string,Temperature:number },
+) {
+  try {
+    const result = await this.mybotsServices.updateModelConfig(botId, user.user_id, updateData);
+    if (!result) {
+      throw new HttpException('Update failed', 404);
+    }
+    return result;
+  } catch (error) {
+    throw new HttpException('Failed to update your configs', 500);
+  }
+};
+@Post('/configs/updateUi/:bot_id')
+@UseGuards(JwtAuthGuard)
+async updateUiConfig(
+  @Param('bot_id') botId: string,
+  @User() user: any,
+  @Body() updateData:any,
+) {
+  try {
+    const result = await this.mybotsServices.updateUiConfig(botId, user.user_id, updateData);
+    if (!result) {
+      throw new HttpException('Update failed', 404);
+    }
+    return result;
+  } catch (error) {
+    throw new HttpException('Failed to update your configs', 500);
+  }
+};
+
+@Post('/configs/updateSecurity/:bot_id')
+@UseGuards(JwtAuthGuard)
+async updateSecurityConfig(
+  @Param('bot_id') botId: string,
+  @User() user: any,
+  @Body() updateData:any,
+) {
+  try {
+    const result = await this.mybotsServices.updateSecurityConfig(botId, user.user_id, updateData);
+    if (!result) {
+      throw new HttpException('Update failed', 404);
+    }
+    return result;
+  } catch (error) {
+    throw new HttpException('Failed to update your configs', 500);
+  }
+};
+
 
   @Post(':botId/conversations')
   async createConversation(
