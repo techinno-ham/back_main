@@ -370,8 +370,8 @@ async updateSecurityConfig(
 
   //@UseGuards(JwtAuthGuard)
   @Get(':botId/conversations')
-  async getBotConversations(@Param('botId') botId: string) {
-    return this.mybotsServices.getConversations(botId);
+  async getBotConversations(@Param('botId') botId: string, @Query('filter') filter?: any ) {
+    return this.mybotsServices.getConversations(botId,"",filter);
   }
 
   @UseGuards(JwtAuthGuard)

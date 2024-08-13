@@ -8,6 +8,7 @@ import {
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 //import { BotCreate } from './dtos/mybots.dto';
 import { ClientKafka } from '@nestjs/microservices';
+import { subDays, subMonths } from 'date-fns';
 
 @Injectable()
 export class MyBotsService {
@@ -215,8 +216,17 @@ export class MyBotsService {
       totalItems: totalCount,
     };
   }
-  async getConversations(botId: string, conversationId?: string) {
+ 
+  async getConversations(botId: string, conversationId?: string, filter?: '3_days' | '7_days' | '1_month' | 'all',) {
     let conversations;
+    let dateRange;
+    if (filter === '3_days') {
+      dateRange = subDays(new Date(), 3);
+    } else if (filter === '7_days') {
+      dateRange = subDays(new Date(), 7);
+    } else if (filter === '1_month') {
+      dateRange = subMonths(new Date(), 1);
+    }
 
     if (conversationId) {
       // Fetch a specific conversation by conversation_id and bot_id
@@ -230,17 +240,42 @@ export class MyBotsService {
         },
       });
     } else {
-      // Fetch all conversations for a bot
-      conversations = await this.prismaService.conversations.findMany({
-        where: {
-          bot_id: botId,
-        },
-        include: {
-          records: true, // Optionally include records if you want to fetch messages as well
-        },
-      });
-    }
 
+      if (filter && filter !== 'all' && dateRange) {
+        // Fetch conversations within the specified date range
+        conversations = await this.prismaService.conversations.findMany({
+          where: {
+            bot_id: botId,
+            created_at: { gte: dateRange },
+          },
+          include: {
+            records: true,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        });
+      } else {
+        // Fetch all conversations for a bot
+        conversations = await this.prismaService.conversations.findMany({
+          where: {
+            bot_id: botId,
+          },
+          include: {
+            records: true,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        });
+      }
+    };
+
+    const allConversationsCount = await this.prismaService.conversations.count({
+      where: {
+        bot_id: botId,
+      },
+    });
     if (
       !conversations ||
       (Array.isArray(conversations) && conversations.length === 0)
@@ -250,15 +285,18 @@ export class MyBotsService {
           `Conversation with ID ${conversationId} not found`,
         );
       } else {
-        throw new NotFoundException(
-          `No conversations found for bot with ID ${botId}`,
-        );
+        if (allConversationsCount === 0) {
+          return { message: 'Your bot has never had a conversation' };
+        } else {
+          return { message: 'Your bot has conversations, but none within the selected filter' };
+        }
       }
     }
 
     return this._toCamelCase(conversations);
   }
 
+ 
   async deleteBot(botId: string, userId: string): Promise<boolean> {
     try {
       const bot = await this.prismaService.bots.findFirst({

@@ -36,6 +36,7 @@
     "bcrypt": "^5.1.1",
     "cheerio": "^1.0.0-rc.12",
     "class-validator": "^0.14.1",
+    "date-fns": "^3.6.0",
     "dayjs": "^1.11.11",
     "iconv-lite": "^0.6.3",
     "ioredis": "^5.4.1",
