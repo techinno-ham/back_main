@@ -1,20 +1,24 @@
-import {IsEmail , IsString, MinLength } from 'class-validator';
+import {IsEmail , IsOptional, IsString, MinLength } from 'class-validator';
 
 
 export class UserCreateReq{
-    @IsString()
-    name: string;
+  @IsString()
+  name: string;
 
-    @IsString()
-    lastName : string;
+  @IsString()
+  lastName : string;
 
-    @IsEmail()
-    email :string
+  @IsEmail()
+  email :string
 
-    @IsString()
-    @MinLength(8)
-    password:string
+  @IsString()
+  @MinLength(8)
+  password:string
 
+  @IsOptional()
+  @IsString()
+  photoUrl?:string
+  
 }
 export class UserLoginReq{
 
@@ -43,6 +47,25 @@ export class UserResetPassReq{
 
   @IsString()
   newPassword:string
+};
+
+
+export class UserUpdateReq {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
+
+  @IsOptional()
+  @IsString()
+  mobileNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  organisation?: string;
 }
 
 

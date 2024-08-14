@@ -1,4 +1,4 @@
-import { Injectable, Inject, HttpException } from '@nestjs/common';
+import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 import {
   AuthPayloadDto,
@@ -6,6 +6,7 @@ import {
   UserEntity,
   UserForgetPassReq,
   UserResetPassReq,
+  UserUpdateReq,
 } from './dtos/auth.dto';
 // import { JwtService } from '@nestjs/jwt';
 import * as jwt from 'jsonwebtoken';
@@ -39,6 +40,7 @@ export class AuthService {
     lastName,
     email,
     password,
+    photoUrl
   }: UserCreateReq): Promise<UserEntity> {
     try {
       const passwordHash = await bcrypt.hash(password, process.env.SALT_BCRYPT);
@@ -48,6 +50,7 @@ export class AuthService {
           lastName,
           email,
           passwordHash,
+          photoUrl
         },
       });
       return new UserEntity(createduser);
@@ -62,6 +65,7 @@ export class AuthService {
     lastName,
     email,
     password,
+    photoUrl
   }: UserCreateReq): Promise<UserEntity> {
     try {
       const passwordHash = await bcrypt.hash(password, process.env.SALT_BCRYPT);
@@ -75,6 +79,7 @@ export class AuthService {
           lastName,
           email,
           passwordHash,
+          photoUrl,
           activeSubscriptionId: subscriptionId,
         },
       });
@@ -84,6 +89,7 @@ export class AuthService {
 
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
+     
 
       const createSubscription = this.prismaService.subscription.create({
         data: {
@@ -112,21 +118,42 @@ export class AuthService {
     });
   };
 
-
   async validateUser({ email, password }: AuthPayloadDto) {
     const user = await this.prismaService.users.findFirst({
       where: {
         email: email,
       },
     });
-    if (user && (await bcrypt.compare(password, user.passwordHash))) {
-      const { passwordHash, ...result } = user;
-      return result;
+
+    if (!user) {
+      throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
-    return null;
 
+    if (!(await bcrypt.compare(password, user.passwordHash))) {
+      throw new HttpException('Incorrect password', HttpStatus.UNAUTHORIZED);
+    }
 
-  };
+    const { passwordHash, ...result } = user;
+    return result;
+  }
+
+  async updateUser(userId: string, updateData: UserUpdateReq): Promise<UserEntity> {
+    try {
+      const updatedUser = await this.prismaService.users.update({
+        where: {
+          user_id: userId,
+        },
+        data: {
+          ...updateData,
+        },
+      });
+      return new UserEntity(updatedUser);
+    } catch (error) {
+      console.error(error);
+      throw new HttpException('Failed to update user', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
 
   async login(user: any) {
     const payload = {
@@ -135,17 +162,11 @@ export class AuthService {
         name: user.name,
       },
     };
-    console.log(
-      {
-        ...user,
-        accessToken: this.jwtService.sign(payload),
-        refreshToken: this.jwtService.sign(payload, { expiresIn: '7d' }),
-      }
-    )
+ 
 
     return {
       ...user,
-      accessToken: this.jwtService.sign(payload, { expiresIn: '1d' }),
+      accessToken: this.jwtService.sign(payload,{ expiresIn: '1d' }),
       refreshToken: this.jwtService.sign(payload, { expiresIn: '7d' }),
     };
   }
@@ -249,74 +270,5 @@ export class AuthService {
     }
   }
 
-  //   async forgetPasswordService({email}:UserForgetPassReq){
-  //     //step 1 (check teh user is exist):
-  //     const existingUser = await this.findeByEmail(email);
 
-  //     if (!existingUser) {
-  //       throw new HttpException('user is notfound', 401);
-  //     }
-  //     //
-
-  //     //step2 (generate token and stored fresh token in redis):
-  //     const token=await this.generateToken(existingUser.user_id);
-  //     const existToken= this.getTokenRedis(existingUser.user_id);
-
-  //     if(existToken){
-  //       await this.deleteTokenRedis(existingUser.user_id);
-  //     };
-  //     //for 15 min stored in redis
-  //     await this.setTokenRedis(existingUser.user_id,token,900);
-  //     //todo: add push notficarion email services
-  //     return {token}
-
-  //   }
-
-  //   async resetPasswordServices({token,newPassword}:UserResetPassReq){
-  //     let userId: string;
-  //     //step 1 (check validate and expire time for token):
-  //     try{
-  //       const payload = (await jwt.verify(
-  //         token,
-  //         process.env.JWT_SECRET,
-  //       )) as payloadJWT;
-  //       userId = payload.userId; // Assign the userId from the payload
-
-  //       const storedToken=await this.getTokenRedis(payload.userId);
-  //       if(!storedToken){
-  //         throw new HttpException('the expire time is for this link is end', 401);
-  //       }
-
-  //     }catch (error){
-  //       if (error instanceof jwt.TokenExpiredError) {
-  //         console.error('Token expired:', error.message);
-
-  //       } else if (error instanceof jwt.JsonWebTokenError) {
-  //         console.error('Invalid token:', error.message);
-
-  //       } else {
-
-  //         console.error('Token verification failed:', error);
-  //       }
-  //     }
-  //     //
-
-  //     //step 2 (updated password):
-  //     const passwordHash = await bcrypt.hash(newPassword, process.env.SALT_BCRYPT);
-
-  //      const updatedUser= await this.prismaService.users.update({
-  //       where:{
-  //         user_id:userId
-  //       },
-  //       data:{
-  //         passwordHash
-  //       }
-  //      });
-
-  //      console.log("password changed..");
-
-  //      return updatedUser
-
-  //     //
-  //   }
 }

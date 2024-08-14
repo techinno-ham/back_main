@@ -1,6 +1,6 @@
-import { Controller, Get, HttpException, Post,Headers } from '@nestjs/common';
+import { Controller, Get, HttpException, Post,Headers, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserCreateReq, UserForgetPassReq, UserLoginReq, UserResetPassReq } from './dtos/auth.dto';
+import { AuthPayloadDto, UserCreateReq, UserForgetPassReq, UserLoginReq, UserResetPassReq, UserUpdateReq } from './dtos/auth.dto';
 import { Body, Req, Res, UseGuards } from '@nestjs/common/decorators';
 import { Response } from 'express';
 import { Request } from 'express';
@@ -9,6 +9,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { RefreshTokenGuard } from './guards/refresh.guard';
 import { GoogleOauthGuard } from './guards/google-oauth.guard';
+import { User } from '../decorators/user.decorator';
 
 
 @Controller({
@@ -21,28 +22,39 @@ export class AuthController {
 
 
   @Post('login')
-  @UseGuards(LocalGuard)
-  async login(@Req() req: Request) {
-    return await this.authServices.login(req.user);
+  async login(@Body() authPayloadDto: AuthPayloadDto) {
+    try {
+      const user = await this.authServices.validateUser(authPayloadDto);
+      return await this.authServices.login(user);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
 
 
   @Post('register')
   async signUpUser(@Body() userCreatDTO: UserCreateReq) {
-    const existingUser = await this.authServices.findeByEmail(
-      userCreatDTO.email,
-    );
+    try {
+      const existingUser = await this.authServices.findeByEmail(userCreatDTO.email);
 
-    if (existingUser) {
-      throw new HttpException('Email already registered', 401);
+      if (existingUser) {
+        throw new HttpException('Email already registered', 401);
+      }
+
+      const userCreated = await this.authServices.createUserWithSubscription(userCreatDTO);
+    
+      return userCreated;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error; // Re-throw the original HttpException
+      }
+      throw new HttpException('Internal Server Error', 500); // Throw a generic internal server error for other cases
     }
-
-    const userCreated = await this.authServices.createUserWithSubscription(userCreatDTO);
-  
-    return userCreated;
   }
-
 
 
   @Get('auth-check')
@@ -59,6 +71,24 @@ export class AuthController {
     return { accessToken: newAccessToken };
   }
 
+  @Post('update-user')
+   @UseGuards(JwtAuthGuard) 
+  async updateUser(
+     @Req() req: Request,
+     @User() user: any,  
+     @Body() updateData: UserUpdateReq) {
+  try {
+    const userId = user.user_id; 
+    const updatedUser = await this.authServices.updateUser(userId, updateData);
+    return updatedUser;
+  } catch (error) {
+    if (error instanceof HttpException) {
+      throw error;
+    }
+    throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleAuth(@Req() req) {
@@ -68,7 +98,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleOauthGuard)
   async googleAuthCallback(@Req() req:any, @Res() res: Response) {
-    const FRONTEND_URL ="http://localhost:3000"
+    const FRONTEND_URL =process.env.FRONT_URL;
     try {
       const token = await this.authServices.oAuthLogin(req.user);
       res.redirect(`${FRONTEND_URL}/oauth?token=${token.jwt}`);

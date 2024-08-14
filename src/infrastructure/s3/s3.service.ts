@@ -8,10 +8,10 @@ export class S3Service {
 
   constructor() {
     this.s3 = new AWS.S3({
-      endpoint: 'http://84.46.250.91:9000',  // Replace with your MinIO or S3 endpoint
-      accessKeyId: 'admin',  // Replace with your access key
-      secretAccessKey: 'admin123',  // Replace with your secret key
-      s3ForcePathStyle: true, // Needed for MinIO or non-AWS S3
+      endpoint: process.env.S3_HOST,  
+      accessKeyId:process.env.S3_USER,  
+      secretAccessKey: process.env.S3_PASSWORD,  
+      s3ForcePathStyle: true, 
       signatureVersion: 'v4',
     });
   }
