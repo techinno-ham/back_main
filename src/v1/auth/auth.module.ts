@@ -16,7 +16,7 @@ import { GoogleStrategy } from './strategies/google-oauth.strategy';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '24h' }, 
     }),
-    RedisModule
+    // RedisModule
   ],
   providers: [AuthService,LocalStrategy,GoogleStrategy],
   controllers: [AuthController],

@@ -18,6 +18,15 @@ jobs:
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       KAFKA_BROKER: ${{ secrets.KAFKA_BROKER }}
       SALT_BCRYPT: ${{ secrets.SALT_BCRYPT }}
+      FRONT_URL: ${{ secrets.FRONT_URL}}
+      S3_HOST: ${{ secrets.S3_HOST}}
+      S3_USER: ${{ secrets.S3_USER}}
+      S3_PASSWORD: ${{ secrets.S3_PASSWORD}}
+
+
+
+      
+
 
     steps:
     - name: Checkout code
@@ -66,6 +75,10 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           KAFKA_BROKER=${{ secrets.KAFKA_BROKER }}
           SALT_BCRYPT=${{ secrets.SALT_BCRYPT }}
+          FRONT_URL=${{ secrets.FRONT_URL}}
+          S3_HOST=${{ secrets.S3_HOST}}
+          S3_USER=${{ secrets.S3_USER}}
+          S3_PASSWORD=${{ secrets.S3_PASSWORD}}
 
     - name: Log out from Docker Hub
       run: docker logout
