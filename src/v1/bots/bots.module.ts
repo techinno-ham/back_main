@@ -6,11 +6,16 @@ import { AuthModule } from '../auth/auth.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { hostname } from 'os';
 import { S3Service } from 'src/infrastructure/s3/s3.service';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     PrismaModule,
     AuthModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '24h' }, 
+    }),
     ClientsModule.register([
       {
         name: 'KAFKA_SERVICE',

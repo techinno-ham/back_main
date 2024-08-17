@@ -1,33 +1,29 @@
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
+import { JwtService } from '@nestjs/jwt';
 
 interface payloadJWT {
   userId: string;
   botId: string;
   iat: number;
   exp: number;
+  sub:any
 }
 @Injectable()
 export class WidgetService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private jwtService: JwtService,) {}
   private async _decodeWidgetTokenService(token: string) {
     try {
-      const payload = (await jwt.verify(
+      const payload = (await this.jwtService.verify(
         token,
-        process.env.JWT_SECRET,
       )) as payloadJWT;
       if (!payload) {
         return null;
       }
-      // const user = await this.prismaService.users.findUnique({
-      //   where: {
-      //     user_id: payload.userId,
-      //   },
-      // });
-
-      // if (!user) return null;
-
+      console.log(payload)
       return payload;
     } catch (error) {
       console.log(error);
@@ -51,7 +47,7 @@ export class WidgetService {
   async getCollectionNameService(token: string) {
     const decoded = await this._decodeWidgetTokenService(token);
     return {
-      collection: decoded?.botId,
+      collection: decoded?.sub.botId,
     };
   }
   async generateWidgetTokenService({

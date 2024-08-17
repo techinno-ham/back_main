@@ -9,12 +9,14 @@ import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 //import { BotCreate } from './dtos/mybots.dto';
 import { ClientKafka } from '@nestjs/microservices';
 import { subDays, subMonths } from 'date-fns';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class MyBotsService {
   constructor(
     private readonly prismaService: PrismaService,
     @Inject('KAFKA_SERVICE') private readonly clientKafka: ClientKafka,
+    private jwtService: JwtService,
   ) {}
 
   private _toCamelCase(obj: any): any {
@@ -82,13 +84,14 @@ export class MyBotsService {
       input_types: [],
       ask_credentials: {},
       footer_msg: "hamyar.chat",
-      bot_name: "raya chat",
+      bot_name: "hamyar chat",
       theme_bot:"light",
       user_msg_bg_color: "#3b81f6",
       bot_image: "https://test.png",
       bot_widget_border_color: "#6495ed",
-      bot_widget_position: "start",
-      init_msg_delay: 20,
+      bot_widget_position: "right",
+      notificationMsgs:"👋 من اینجا هستم تا به شما کمک کنم.",
+      notification_msg_delay: 2000,
     };
     const securityConfigs = {
       access_bot: "private",
@@ -112,6 +115,15 @@ export class MyBotsService {
           ui_configs: uiConfigs,
           security_configs: securityConfigs,
         },
+      });
+      const payload = {
+        sub: {
+          botId:createdBot.bot_id
+        },
+      };
+      await this.prismaService.bots.update({
+        where: { bot_id: createdBot.bot_id },
+        data: { bot_id_hash: this.jwtService.sign(payload, { expiresIn: '30d' }) },
       });
       return createdBot;
     } catch (error) {
