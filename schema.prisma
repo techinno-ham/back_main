@@ -59,7 +59,7 @@ model bots {
   ui_configs       Json
   security_configs Json
   evals            Json            @default("{}")
-  status           String          @default("notActive")
+  status           String          @default("inProgress")
   token_limit      Int             @default(8000000)
   token_limit_pp   Int             @default(8000)
   update_datasource Int             @default(0)
