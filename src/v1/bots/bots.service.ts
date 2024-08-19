@@ -49,7 +49,7 @@ export class MyBotsService {
       },
     };
 
-    this.clientKafka.emit('aqkjtrhb-default', JSON.stringify(kafkaMessage));
+    this.clientKafka.emit('normal_job', JSON.stringify(kafkaMessage));
     console.log({kafkaMessage});
   }
 
