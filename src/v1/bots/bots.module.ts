@@ -24,12 +24,12 @@ import { JwtModule } from '@nestjs/jwt';
           client: {
             ssl: true,
             sasl: {
-              mechanism: 'scram-sha-512',
-              username: 'aqkjtrhb',
-              password: 'JSY-cpUfbH6qH5pt2DxbFriMo-tTgygV',
+              mechanism: process.env.KAFKA_SASL_MECH as any,
+              username: process.env.KAFKA_USERNAME,
+              password: process.env.KAFKA_PASS,
             },
             clientId: hostname(),
-            brokers: ['dory.srvs.cloudkafka.com:9094'],
+            brokers: [process.env.KAFKA_BROKER],
           },
           producerOnlyMode: true,
           // consumer: {
