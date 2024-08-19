@@ -33,7 +33,7 @@ export class MyBotsService {
     }
     return obj;
   }
-  private _pushJobToKafka(botId: any, data: any): any {
+  private async _pushJobToKafka(botId: any, data: any): Promise<void> {
     type Datesources = 'text' | 'qa' | 'urls' | 'files';
 
     const kafkaMessage: {
@@ -48,9 +48,17 @@ export class MyBotsService {
         ...(data.static_files && { files: data.static_files }),
       },
     };
-
-    this.clientKafka.emit('normal_job', JSON.stringify(kafkaMessage));
-    console.log({kafkaMessage});
+    
+    this.clientKafka.emit('normal_job', JSON.stringify(kafkaMessage)).subscribe({
+      next: (result) => {
+          console.log('Message delivered successfully:', result);
+      },
+      error: (error) => {
+          console.error('Error delivering message to Kafka:', error);
+          // Additional error handling logic (e.g., retries)
+      }
+  });
+  
   }
 
   async cretaeBots(userId: string) {
