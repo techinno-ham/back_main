@@ -24,7 +24,7 @@ import { JwtModule } from '@nestjs/jwt';
           client: {
             ssl: true,
             sasl: {
-              mechanism: process.env.KAFKA_SASL_MECH as any,
+              mechanism: 'scram-sha-256',
               username: process.env.KAFKA_USERNAME,
               password: process.env.KAFKA_PASS,
             },
