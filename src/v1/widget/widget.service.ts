@@ -75,6 +75,7 @@ export class WidgetService {
         model_configs: true,
         ui_configs: true,
         security_configs: true,
+        status:true
       },
     });
 
