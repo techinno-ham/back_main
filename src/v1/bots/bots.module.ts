@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module, OnModuleInit } from '@nestjs/common';
 import { PrismaModule } from 'src/infrastructure/prisma/prisma.module';
 import { MyBotsController } from './bots.controller';
 import { MyBotsService } from './bots.service';
@@ -42,4 +42,13 @@ import { JwtModule } from '@nestjs/jwt';
   controllers: [MyBotsController],
   providers: [MyBotsService,S3Service],
 })
-export class MyBotsModule {}
+export class MyBotsModule implements OnModuleInit {
+  private readonly logger = new Logger(MyBotsModule.name);
+
+  onModuleInit() {
+    this.logger.log(`JWT_SECRET: ${process.env.JWT_SECRET}`);
+    this.logger.log(`KAFKA_USERNAME: ${process.env.KAFKA_USERNAME}`);
+    this.logger.log(`KAFKA_PASS: ${process.env.KAFKA_PASS}`);
+    this.logger.log(`KAFKA_BROKER: ${process.env.KAFKA_BROKER}`);
+  }
+}
