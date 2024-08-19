@@ -17,6 +17,11 @@ jobs:
       HOST: ${{ secrets.HOST }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       KAFKA_BROKER: ${{ secrets.KAFKA_BROKER }}
+      KAFKA_TOPIC: ${{ secrets.KAFKA_TOPIC }}
+      KAFKA_USERNAME: ${{ secrets.KAFKA_USERNAME }}
+      KAFKA_PASS: ${{ secrets.KAFKA_PASS }}
+      KAFKA_GROUP_ID: ${{ secrets.KAFKA_GROUP_ID }}
+      KAFKA_SASL_MECH: ${{ secrets.KAFKA_SASL_MECH }}
       SALT_BCRYPT: ${{ secrets.SALT_BCRYPT }}
       FRONT_URL: ${{ secrets.FRONT_URL}}
       S3_HOST: ${{ secrets.S3_HOST}}
@@ -74,6 +79,11 @@ jobs:
           HOST=${{ secrets.HOST }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           KAFKA_BROKER=${{ secrets.KAFKA_BROKER }}
+          KAFKA_TOPIC=${{ secrets.KAFKA_TOPIC }}
+          KAFKA_USERNAME=${{ secrets.KAFKA_USERNAME }}
+          KAFKA_PASS=${{ secrets.KAFKA_PASS }}
+          KAFKA_GROUP_ID=${{ secrets.KAFKA_GROUP_ID }}
+          KAFKA_SASL_MECH=${{ secrets.KAFKA_SASL_MECH }}
           SALT_BCRYPT=${{ secrets.SALT_BCRYPT }}
           FRONT_URL=${{ secrets.FRONT_URL}}
           S3_HOST=${{ secrets.S3_HOST}}
