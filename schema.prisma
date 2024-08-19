@@ -76,7 +76,7 @@ model datasources {
   static_files   Json?   @default("[]")
   files_info     Json?   @default("[]")
   urls           Json?   @default("[]")
-  text_input     String? @default("") @db.VarChar(255)
+  text_input     String? @default("") @db.Text
   qANDa_input    Json?   @default("[]")
   knowledge_base Json?   @default("{}")
   total_char     String? @db.VarChar(255)
