@@ -14,7 +14,7 @@ import { JwtModule } from '@nestjs/jwt';
     AuthModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '24h' }, 
+      signOptions: { expiresIn: '24h' },
     }),
     ClientsModule.register([
       {
@@ -40,15 +40,6 @@ import { JwtModule } from '@nestjs/jwt';
     ]),
   ],
   controllers: [MyBotsController],
-  providers: [MyBotsService,S3Service],
+  providers: [MyBotsService, S3Service],
 })
-export class MyBotsModule implements OnModuleInit {
-  private readonly logger = new Logger(MyBotsModule.name);
-
-  onModuleInit() {
-    this.logger.log(`JWT_SECRET: ${process.env.JWT_SECRET}`);
-    this.logger.log(`KAFKA_USERNAME: ${process.env.KAFKA_USERNAME}`);
-    this.logger.log(`KAFKA_PASS: ${process.env.KAFKA_PASS}`);
-    this.logger.log(`KAFKA_BROKER: ${process.env.KAFKA_BROKER}`);
-  }
-}
+export class MyBotsModule { }
