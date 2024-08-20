@@ -74,18 +74,19 @@ export class MyBotsController {
 
     if (files?.length) {
       
-      const bucketName = `${createdBot.bot_id}`;
+      const bucketName = 'data-sources'; // The top-level bucket
+      const botId = createdBot.bot_id;
       const fileUrlPrefix = process.env.IMAGE_URL_PREFIX || 'http://localhost:12000';
       const fileId = uuidv4();  // Generate a UUID for each file
-      await this.s3Service.createBucket(bucketName);
+      await this.s3Service.ensureBucketExists(bucketName); 
   
       const filesInfo = await Promise.all(
         files.map(async (file) => {
           const originalName = iconv.decode(Buffer.from(file.originalname, 'binary'), 'utf8');
-          await this.s3Service.uploadFile(bucketName, originalName, file.buffer);
+          await this.s3Service.uploadFile(bucketName, botId, originalName, file.buffer);
           
           return {
-            link: `${fileUrlPrefix}/${bucketName}/${originalName}`,
+            link: `${fileUrlPrefix}/${bucketName}/${botId}/${originalName}`,
             size: file.size,
             name: originalName,
             id: fileId,
@@ -183,8 +184,9 @@ export class MyBotsController {
           // // Check if file needs to be removed
           if (remove === "true" || remove==true) {
             try {
-              console.log(name)
-              await this.s3Service.deleteFile(botId, name);
+              const bucketName = 'data-sources';
+              const key=`${botId}/${name}`
+              await this.s3Service.deleteFile(bucketName, key);
             } catch (error) {
               throw new HttpException(`Failed to delete file ${name}`, 500);
             }
@@ -200,7 +202,8 @@ export class MyBotsController {
 
 
         if (files?.length > 0) {
-          const bucketName = `${botId}`;
+          const bucketName = 'data-sources'; // The top-level bucket
+          const bot_Id =botId;
           const fileUrlPrefix = process.env.IMAGE_URL_PREFIX || 'http://localhost:12000';
           const fileId = uuidv4();  // Generate a UUID for each file
           await this.s3Service.ensureBucketExists(bucketName);
@@ -209,10 +212,10 @@ export class MyBotsController {
           const filesInfo = await Promise.all(
             files.map(async (file) => {
               const originalName = iconv.decode(Buffer.from(file.originalname, 'binary'), 'utf8');
-              await this.s3Service.uploadFile(bucketName, originalName, file.buffer);
+              await this.s3Service.uploadFile(bucketName,bot_Id, originalName, file.buffer);
               
               return {
-                link: `${fileUrlPrefix}/${bucketName}/${originalName}`,
+                link: `${fileUrlPrefix}/${bucketName}/${bot_Id}/${originalName}`,
                 size: file.size,
                 name: originalName,
                 id: fileId,
@@ -302,13 +305,27 @@ async updateModelConfig(
 };
 @Post('/configs/updateUi/:bot_id')
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(
+  FilesInterceptor('image', 7),
+)
 async updateUiConfig(
+  @UploadedFiles() image: any,
   @Param('bot_id') botId: string,
   @User() user: any,
   @Body() updateData:any,
 ) {
+  if(image.length){
+    const bucketName = 'bot-resources'; // The top-level bucket
+    const bot_Id = botId
+    const fileUrlPrefix = process.env.S3_HOST|| 'http://localhost:12000';
+    await this.s3Service.ensureBucketExists(bucketName);
+    const originalName = iconv.decode(Buffer.from(image[0].originalname, 'binary'), 'utf8');
+    await this.s3Service.uploadFile(bucketName, bot_Id, originalName, image[0].buffer);
+    updateData["bot_image"]=`${fileUrlPrefix}/${bucketName}/${bot_Id}/${originalName}`
+  }
   try {
     const result = await this.mybotsServices.updateUiConfig(botId, user.user_id, updateData);
+    console.log(result)
     if (!result) {
       throw new HttpException('Update failed', 404);
     }

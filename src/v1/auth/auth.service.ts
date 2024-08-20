@@ -64,12 +64,12 @@ export class AuthService {
     lastName,
     email,
     password,
-    photoUrl
   }: UserCreateReq): Promise<UserEntity> {
     try {
       const passwordHash = await bcrypt.hash(password, process.env.SALT_BCRYPT);
       const userId = uuidv4();
       const subscriptionId = uuidv4();
+      const photoUrl=`${process.env.S3_HOST}/user-resources/defualtProfile/profile.svg`
 
       const createUser = this.prismaService.users.create({
         data: {

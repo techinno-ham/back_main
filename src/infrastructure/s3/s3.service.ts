@@ -41,19 +41,21 @@ export class S3Service {
       }
     }
   }
-  async uploadFile(bucketName: string, objectName: string, fileContent: Buffer): Promise<void> {
-    try {
-      await this.s3.putObject({
-        Bucket: bucketName,
-        Key: objectName,
-        Body: fileContent,
-      }).promise();
-      this.logger.log(`File ${objectName} uploaded successfully to ${bucketName}`);
-    } catch (error) {
-      this.logger.error(`Error uploading file ${objectName} to ${bucketName}`, error.stack);
-      throw error;
-    }
+async uploadFile(bucketName: string, Id: string, objectName: string, fileContent: Buffer): Promise<void> {
+  const objectKey = `${Id}/${objectName}`;
+  
+  try {
+    await this.s3.putObject({
+      Bucket: bucketName,
+      Key: objectKey,
+      Body: fileContent,
+    }).promise();
+    this.logger.log(`File ${objectName} uploaded successfully to ${bucketName}/${objectKey}`);
+  } catch (error) {
+    this.logger.error(`Error uploading file ${objectName} to ${bucketName}/${objectKey}`, error.stack);
+    throw error;
   }
+}
   async downloadFile(bucketName: string, objectName: string, downloadPath: string): Promise<void> {
     try {
       const data = await this.s3.getObject({

@@ -86,7 +86,6 @@ export class MyBotsService {
     ];
     const uiConfigs = {
       greet_msgs: ["سلام ! امروز چطور می‌توانم به شما کمک کنم؟"],
-      notification_msgs: ["سلام ! امروز چطور می‌توانم به شما کمک کنم؟"],
       action_btns: ["چگونه میتونم بات بسازم؟"],
       placeholder_msg: "پیام شما ...",
       input_types: [],
@@ -95,7 +94,8 @@ export class MyBotsService {
       bot_name: "hamyar chat",
       theme_bot:"light",
       user_msg_bg_color: "#3b81f6",
-      bot_image: "https://test.png",
+      bot_image: `${process.env.S3_HOST}/bot-resources/defualtImage/bot.svg`,
+      bot_image_border_color: "#000",
       bot_widget_border_color: "#6495ed",
       bot_widget_position: "right",
       notificationMsgs:"👋 من اینجا هستم تا به شما کمک کنم.",
