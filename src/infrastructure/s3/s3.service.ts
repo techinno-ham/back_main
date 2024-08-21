@@ -43,17 +43,35 @@ export class S3Service {
   }
 async uploadFile(bucketName: string, Id: string, objectName: string, fileContent: Buffer): Promise<void> {
   const objectKey = `${Id}/${objectName}`;
+  const contentType = this.getContentType(objectName);
   
   try {
     await this.s3.putObject({
       Bucket: bucketName,
       Key: objectKey,
       Body: fileContent,
+      ContentType: contentType 
     }).promise();
     this.logger.log(`File ${objectName} uploaded successfully to ${bucketName}/${objectKey}`);
   } catch (error) {
     this.logger.error(`Error uploading file ${objectName} to ${bucketName}/${objectKey}`, error.stack);
     throw error;
+  }
+}
+private getContentType(fileName: string): string {
+  const extension = fileName.split('.').pop().toLowerCase();
+  switch (extension) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'svg':
+      return 'image/svg+xml';
+    case 'gif':
+      return 'image/gif';
+    default:
+      return 'application/octet-stream'; // Default to binary stream if unknown
   }
 }
   async downloadFile(bucketName: string, objectName: string, downloadPath: string): Promise<void> {

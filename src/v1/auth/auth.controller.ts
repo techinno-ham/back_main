@@ -1,7 +1,7 @@
 import { Controller, Get, HttpException, Post,Headers, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthPayloadDto, UserCreateReq, UserForgetPassReq, UserLoginReq, UserResetPassReq, UserUpdateReq } from './dtos/auth.dto';
-import { Body, Req, Res, UseGuards } from '@nestjs/common/decorators';
+import { Body, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common/decorators';
 import { Response } from 'express';
 import { Request } from 'express';
 import { LocalGuard } from './guards/local.guard';
@@ -10,6 +10,9 @@ import { JwtAuthGuard } from './guards/jwt.guard';
 import { RefreshTokenGuard } from './guards/refresh.guard';
 import { GoogleOauthGuard } from './guards/google-oauth.guard';
 import { User } from '../decorators/user.decorator';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { S3Service } from 'src/infrastructure/s3/s3.service';
+import * as iconv from 'iconv-lite';
 
 
 @Controller({
@@ -17,7 +20,10 @@ import { User } from '../decorators/user.decorator';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly authServices: AuthService) {}
+  constructor(
+    private readonly authServices: AuthService,
+    private readonly s3Service: S3Service,
+  ) {}
 
 
 
@@ -87,6 +93,38 @@ export class AuthController {
     }
     throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
   }
+}
+@Post('update-user/profileImage')
+@UseGuards(JwtAuthGuard) 
+@UseInterceptors(
+  FilesInterceptor('image', 7),
+)
+async updateUserProfileImage(
+  @UploadedFiles() image: any,
+  @Req() req: Request,
+  @User() user: any,  ) {
+try {
+  let newUrlIamge:string;
+  const userId = user.user_id; 
+  if(image.length){
+    const bucketName = 'user-resources'; // The top-level bucket
+    const fileUrlPrefix = process.env.S3_HOST|| 'http://localhost:12000';
+    await this.s3Service.ensureBucketExists(bucketName);
+    const originalName = iconv.decode(Buffer.from(image[0].originalname, 'binary'), 'utf8');
+    await this.s3Service.uploadFile(bucketName, userId, originalName, image[0].buffer);
+    newUrlIamge=`${fileUrlPrefix}/${bucketName}/${userId}/${originalName}`
+  }
+  const updateData={
+    photoUrl:newUrlIamge
+  }
+ const updatedUser = await this.authServices.updateUserImage(userId, updateData);
+ return updatedUser;
+} catch (error) {
+ if (error instanceof HttpException) {
+   throw error;
+ }
+ throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+}
 }
 
   @Get('google')

@@ -152,7 +152,22 @@ export class AuthService {
       throw new HttpException('Failed to update user', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
+  async updateUserImage(userId: string, updateData: any): Promise<UserEntity> {
+    try {
+      const updatedUser = await this.prismaService.users.update({
+        where: {
+          user_id: userId,
+        },
+        data: {
+          ...updateData,
+        },
+      });
+      return new UserEntity(updatedUser);
+    } catch (error) {
+      console.error(error);
+      throw new HttpException('Failed to update userImage', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
   async login(user: any) {
     const payload = {

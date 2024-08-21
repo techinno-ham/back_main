@@ -314,7 +314,26 @@ async updateUiConfig(
   @User() user: any,
   @Body() updateData:any,
 ) {
+  if (typeof updateData.greet_msgs === 'string') {
+    try {
+      updateData.greet_msgs = JSON.parse(updateData.greet_msgs);
+    } catch (err) {
+      throw new error('Invalid JSON format for urls');
+    }
+  };
+
+
+  if (typeof updateData.action_btns === 'string') {
+    try {
+      updateData.action_btns = JSON.parse(updateData.action_btns);
+    } catch (err) {
+      throw new error('Invalid JSON format for urls');
+    }
+  };
+
+
   if(image.length){
+    console.log("hereee")
     const bucketName = 'bot-resources'; // The top-level bucket
     const bot_Id = botId
     const fileUrlPrefix = process.env.S3_HOST|| 'http://localhost:12000';
