@@ -15,6 +15,7 @@ import { HttpModule } from '@nestjs/axios';
 import { WidgetModule } from './v1/widget/widget.module';
 import { TasksModule } from './v1/tasks/tasks.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SeedService } from './v1/seed/seed.service';
 @Module({
   imports: [
     CrawlerModule,
@@ -39,6 +40,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AppService,
     ConsumerService,
     ChatService,
+    SeedService
     //InitConsumer
   ],
 })
