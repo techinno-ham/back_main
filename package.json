@@ -36,6 +36,7 @@
     "bcrypt": "^5.1.1",
     "cheerio": "^1.0.0-rc.12",
     "class-validator": "^0.14.1",
+    "colors": "^1.4.0",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.11",
     "iconv-lite": "^0.6.3",
@@ -43,6 +44,7 @@
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
     "multer": "^1.4.5-lts.1",
+    "nest-winston": "^1.9.7",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
     "passport-jwt": "^4.0.1",
@@ -50,7 +52,8 @@
     "prisma": "^5.16.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "winston": "^3.14.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.2",

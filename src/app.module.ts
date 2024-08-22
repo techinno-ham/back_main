@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CrawlerModule } from './v1/crawler/crawler.module';
@@ -40,7 +40,8 @@ import { SeedService } from './v1/seed/seed.service';
     AppService,
     ConsumerService,
     ChatService,
-    SeedService
+    SeedService,
+    Logger
     //InitConsumer
   ],
 })
