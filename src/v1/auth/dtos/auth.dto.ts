@@ -77,7 +77,6 @@ export class UserEntity {
     name: string;
     lastName: string;
     email: string;
-    passwordHash:string
     isAuthenticated?:boolean
 
   }

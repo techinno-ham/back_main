@@ -223,39 +223,7 @@ export class AuthService {
     return token;
   }
 
-  // async setTokenRedis(
-  //   key: string,
-  //   token: string,
-  //   timeExpire: number,
-  // ): Promise<string> {
-  //   try {
-  //     const cachedData = await this.redisClient.set(key, token);
-  //     await this.redisClient.expire(key, timeExpire);
 
-  //     return cachedData;
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // }
-
-  // async getTokenRedis(key: string): Promise<string> {
-  //   try {
-  //     const cachedData = await this.redisClient.get(key);
-
-  //     return cachedData;
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // }
-
-  //   async deleteTokenRedis(key: string){
-  //     try {
-  //        await this.redisClient.del(key);
-
-  //     } catch (e) {
-  //       console.error(e);
-  //     }
-  //   }
 
   async getUserWithToken(token: string): Promise<UserEntity | undefined> {
     try {
@@ -269,6 +237,19 @@ export class AuthService {
       const user = await this.prismaService.users.findUnique({
         where: {
           email: payload.username,
+        },
+        select: {
+          user_id: true,
+          name: true,
+          lastName: true,
+          email: true,
+          photoUrl: true,
+          mobileNumber: true,
+          organisation: true,
+          created_at: true,
+          updated_at: true,
+          activeSubscriptionId: true,
+          subscriptions: true,
         },
       });
 
