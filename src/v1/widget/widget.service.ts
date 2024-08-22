@@ -19,14 +19,12 @@ export class WidgetService {
     try {
       const payload = (await this.jwtService.verify(
         token,
-      )) as payloadJWT;
+      )) ;
       if (!payload) {
         return null;
       }
-      console.log(payload)
       return payload;
     } catch (error) {
-      console.log(error);
       return null;
     }
   }

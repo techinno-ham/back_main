@@ -119,8 +119,13 @@ export class AuthService {
 
   async validateUser({ email, password }: AuthPayloadDto) {
     const user = await this.prismaService.users.findFirst({
-      where: {
-        email: email,
+      where: { email: email },
+      include: {
+        subscriptions: {
+          include: {
+            tier: true, 
+          },
+        },
       },
     });
 
@@ -229,7 +234,7 @@ export class AuthService {
     try {
       const payload = (await this.jwtService.verify(
         token
-      )) as payloadJWT;
+      ));
       if (!payload) {
         return null;
       };
@@ -249,9 +254,14 @@ export class AuthService {
           created_at: true,
           updated_at: true,
           activeSubscriptionId: true,
-          subscriptions: true,
+          subscriptions: {
+            include: {
+              tier: true, 
+            },
+          },
         },
       });
+  
 
       if (!user) return null;
 
@@ -260,7 +270,6 @@ export class AuthService {
         isAuthenticated: true,
       };
     } catch (error) {
-      console.log(error);
       return null;
     }
   }
