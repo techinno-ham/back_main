@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PrismaModule } from 'src/infrastructure/prisma/prisma.module'; 
@@ -19,7 +19,7 @@ import { S3Service } from 'src/infrastructure/s3/s3.service';
     }),
     // RedisModule
   ],
-  providers: [AuthService,LocalStrategy,GoogleStrategy,S3Service],
+  providers: [AuthService,LocalStrategy,GoogleStrategy,S3Service,Logger],
   controllers: [AuthController],
   exports:[AuthService]
 })

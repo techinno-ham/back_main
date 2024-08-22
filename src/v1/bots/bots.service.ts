@@ -33,19 +33,21 @@ export class MyBotsService {
     }
     return obj;
   }
-  private async _pushJobToKafka(botId: any, data: any): Promise<void> {
+  private async _pushJobToKafka(botId: any, datasourceId:any, data: any): Promise<void> {
     type Datesources = 'text' | 'qa' | 'urls' | 'files';
 
     const kafkaMessage: {
       botId: any;
+      datasourceId:any;
       datasources: Record<Datesources, any>;
     } = {
       botId,
+      datasourceId,
       datasources: {
         ...(data.text_input && { text: data.text_input }),
         ...(data.qANDa_input && { qa: data.qANDa_input }),
         ...(data.urls && { urls: data.urls }),
-        ...(data.static_files && { files: data.static_files }),
+        ...(data['files_info'] && { files: botId }),
       },
     };
     
@@ -190,14 +192,13 @@ export class MyBotsService {
 
 
   async createDataSource(data: any) {
-    console.log({data});
 
     try {
       const createdDataSource = await this.prismaService.datasources.create({
         data,
       });
 
-      this._pushJobToKafka(data.bot_id, data);
+      this._pushJobToKafka(data.bot_id,createdDataSource.datasource_id, data);
 
       return createdDataSource;
     } catch (error) {
