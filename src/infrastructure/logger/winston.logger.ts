@@ -1,4 +1,17 @@
 import { createLogger, format, transports } from "winston";
+import * as path from 'path'; // Ensure this import is correct
+import * as fs from 'fs';
+
+//log to correct path in build(dist) folder
+const logsDir = path.join(process.cwd() , "dist" , 'logs');
+
+// Ensure the logs directory exists
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+    console.log(`Created logs directory at: ${logsDir}`);
+} else {
+    console.log(`Logs directory already exists at: ${logsDir}`);
+}
 
 // custom log display format
 const customFormat = format.printf(({timestamp, level, stack, message}) => {
@@ -7,7 +20,7 @@ const customFormat = format.printf(({timestamp, level, stack, message}) => {
 
 const options = {
     file: {
-        filename: 'error.log',
+        filename: path.join(logsDir, 'error.log'),
         level: 'error'
     },
     console: {
@@ -35,7 +48,7 @@ const prodLogger = {
     transports: [
         new transports.File(options.file),
         new transports.File({
-            filename: 'combine.log',
+            filename: path.join(logsDir, 'combine.log'),
             level: 'info'
         })
     ]
