@@ -7,6 +7,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { hostname } from 'os';
 import { S3Service } from 'src/infrastructure/s3/s3.service';
 import { JwtModule } from '@nestjs/jwt';
+import { S3Module } from 'src/infrastructure/s3/s3.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { JwtModule } from '@nestjs/jwt';
         },
       },
     ]),
+    S3Module
   ],
   controllers: [MyBotsController],
   providers: [MyBotsService, S3Service],

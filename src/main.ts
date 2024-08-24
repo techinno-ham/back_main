@@ -3,9 +3,9 @@ import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common';
 import * as express from 'express';
 import { join } from 'path';
-import { SeedService } from './v1/seed/seed.service';
 import { WinstonModule } from 'nest-winston';
 import { instance } from './infrastructure/logger/winston.logger';
+import { SeedService } from './infrastructure/seed/seed.service';
 
 
 async function bootstrap() {

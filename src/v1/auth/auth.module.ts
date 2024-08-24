@@ -7,12 +7,14 @@ import { RedisModule } from 'src/infrastructure/redis/redis.module';
 import { LocalStrategy } from './strategies/local-strategy';
 import { GoogleStrategy } from './strategies/google-oauth.strategy';
 import { S3Service } from 'src/infrastructure/s3/s3.service';
+import { S3Module } from 'src/infrastructure/s3/s3.module';
 
 
 
 
 @Module({
   imports: [PrismaModule,
+    S3Module,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '24h' }, 

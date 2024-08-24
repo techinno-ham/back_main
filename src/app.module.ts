@@ -15,7 +15,10 @@ import { HttpModule } from '@nestjs/axios';
 import { WidgetModule } from './v1/widget/widget.module';
 import { TasksModule } from './v1/tasks/tasks.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { SeedService } from './v1/seed/seed.service';
+import { SeedService } from './infrastructure/seed/seed.service';
+import { SeedModule } from './infrastructure/seed/seed.module';
+import { S3Module } from './infrastructure/s3/s3.module';
+
 @Module({
   imports: [
     CrawlerModule,
@@ -34,6 +37,8 @@ import { SeedService } from './v1/seed/seed.service';
     },
     ScheduleModule.forRoot(),
     TasksModule,
+    SeedModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [
