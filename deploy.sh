@@ -1,0 +1,1 @@
+docker run -d --name hamback -v hamback-logs:/app/dist/logs -p 12000:12000 --restart unless-stopped hamyarchat/back:latest
