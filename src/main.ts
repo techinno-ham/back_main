@@ -6,6 +6,7 @@ import { join } from 'path';
 import { WinstonModule } from 'nest-winston';
 import { instance } from './infrastructure/logger/winston.logger';
 import { SeedService } from './infrastructure/seed/seed.service';
+import './amp';
 
 
 async function bootstrap() {
