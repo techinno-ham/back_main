@@ -13,6 +13,13 @@ export class CrawlerController {
   @Get('links')
   async getListLink(@Query('url') url?: string) {
     return await this.crawlerService.getavailableLink(url);
+  };
+
+
+
+  @Get('linksDemo')
+  async getListLinkDemo(@Query('url') url?: string) {
+    return await this.crawlerService.getAvailableLinksDemo(url);
   }
 
   @Post()
