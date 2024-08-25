@@ -39,54 +39,115 @@ export class CrawlerService {
       const bodyHTML = response.data;
       const $ = cheerio.load(bodyHTML);
       const links = $('a');
-      const allFoundURLs = [];
-
+      const allFoundURLs: string[] = [];
+  
       // Get base URL to use for relative URLs
       const baseURL = new URL(url).origin;
-
+  
       $(links).each(function (i, link) {
         let href = $(link).attr('href');
-
+  
         if (href) {
           if (href.startsWith('/')) {
             href = baseURL + href;
           }
-
-        
+  
           if (href.startsWith(baseURL)) {
             allFoundURLs.push(href);
           }
         }
       });
-
-      // Remove duplicates
-      const uniqueURLs = [...new Set(allFoundURLs)];
-
+  
+      // Remove duplicates and limit to a maximum of 10 unique URLs
+      let uniqueURLs = [...new Set(allFoundURLs)].slice(0, 10);
+  
+      // Ensure the original URL is included
+      if (!uniqueURLs.includes(url)) {
+        uniqueURLs.unshift(url);
+        if (uniqueURLs.length > 10) {
+          uniqueURLs.pop(); // Ensure the list doesn't exceed 10 URLs
+        }
+      }
+  
       // Create an array to store the URLs with their character counts
-      const urlCharacterCounts = [];
-
+      const urlCharacterCounts: { url: string; characterCount: number }[] = [];
+  
       // Crawl each unique URL and calculate the character count
       for (const uniqueURL of uniqueURLs) {
         const characterCount = await this.getCharacterCount(uniqueURL);
         urlCharacterCounts.push({ url: uniqueURL, characterCount });
-      };
-      console.log(urlCharacterCounts)
-
-      // Sort the URLs by character count in descending order and get the top 4
-      const topURLs = urlCharacterCounts
-        .sort((a, b) => b.characterCount - a.characterCount)
-        .slice(0, 3)
-        .map(item => item.url);
-
-
-        topURLs.push(url)
-
-      return topURLs;
+      }
+  
+      // Sort the URLs by character count in descending order
+      const sortedURLs = urlCharacterCounts.sort((a, b) => b.characterCount - a.characterCount);
+  
+      // Ensure the primary URL is included
+      const primaryURLData = sortedURLs.find(item => item.url === url);
+      if (!primaryURLData) {
+        const primaryCharacterCount = await this.getCharacterCount(url);
+        sortedURLs.unshift({ url, characterCount: primaryCharacterCount });
+      }
+    
+      // Adjust selection to satisfy the character count range
+      let selectedURLs = [];
+      let totalCharacterCount = 0;
+      const minCharacterCount = 6000;
+      const maxCharacterCount = 25000;
+  
+      // Add primary URL first
+      selectedURLs.push(primaryURLData);
+      totalCharacterCount = primaryURLData.characterCount;
+  
+      for (const urlData of sortedURLs) {
+        if (urlData.url === url) {
+          continue;
+        }
+  
+        // Check if adding the next URL keeps the total within the 25,000 character limit
+        if (totalCharacterCount + urlData.characterCount > maxCharacterCount) {
+          continue;
+        }
+  
+        selectedURLs.push(urlData);
+        totalCharacterCount += urlData.characterCount;
+  
+        // If the total character count is within the range and we've added 4 or 5 URLs, stop adding more
+        if (totalCharacterCount >= minCharacterCount && selectedURLs.length >= 4) {
+          break;
+        }
+      }
+  
+      // If the total character count is still less than the minimum, try to add more URLs
+      if (totalCharacterCount < minCharacterCount) {
+        for (const urlData of sortedURLs) {
+          if (!selectedURLs.includes(urlData) && totalCharacterCount + urlData.characterCount <= maxCharacterCount) {
+            selectedURLs.push(urlData);
+            totalCharacterCount += urlData.characterCount;
+            if (totalCharacterCount >= minCharacterCount) {
+              break;
+            }
+          }
+        }
+      }
+  
+      // If the total character count is still less than the minimum after trying to add more URLs, throw an error
+      if (totalCharacterCount < minCharacterCount) {
+        throw new Error(`Unable to find enough content. The total character count is less than the required minimum of ${minCharacterCount} characters.`);
+      }
+  
+      // Ensure the selected URLs list has a maximum of 4 links
+      if (selectedURLs.length > 4) {
+        selectedURLs = selectedURLs.slice(0, 4);
+      }
+  
+      return selectedURLs.map((item) => item.url);
     } catch (err) {
       console.log(err);
       throw new Error('Failed to fetch and parse URLs');
     }
   }
+  
+  
 
   async getCharacterCount(url: string): Promise<number> {
     try {
