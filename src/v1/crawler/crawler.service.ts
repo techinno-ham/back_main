@@ -35,14 +35,39 @@ export class CrawlerService {
 
   async getAvailableLinksDemo(url: string) {
     try {
+
+      const baseURL = new URL(url).origin;
+
+      if (url === baseURL) {
+         const sitemapURLs = await this.getSitemapURLs(baseURL);
+
+         if( sitemapURLs.length > 2 ){
+          console.log("here")
+            return  await this.getAvliableLinkSiteMap(sitemapURLs,url);
+         }else{
+          return  await this.getAvliableLinkCherio(url);
+         }
+        
+      } else {
+           return  await this.getAvliableLinkCherio(url);
+      }
+
+    } catch (err) {
+      console.log(err);
+      throw new Error('Failed to fetch and parse URLs');
+    }
+  }
+
+
+  async getAvliableLinkCherio(url: string){
       const response = await axios.get(url);
       const bodyHTML = response.data;
       const $ = cheerio.load(bodyHTML);
       const links = $('a');
       const allFoundURLs: string[] = [];
+      const baseURL = new URL(url).origin;
   
       // Get base URL to use for relative URLs
-      const baseURL = new URL(url).origin;
   
       $(links).each(function (i, link) {
         let href = $(link).attr('href');
@@ -141,10 +166,64 @@ export class CrawlerService {
       }
   
       return selectedURLs.map((item) => item.url);
-    } catch (err) {
-      console.log(err);
-      throw new Error('Failed to fetch and parse URLs');
+  }
+
+  async getAvliableLinkSiteMap(urls: string[],baseUrl:string){
+    
+    if (!urls.includes(baseUrl)) {
+      urls.unshift(baseUrl);
+      if (urls.length > 5 ) {
+        urls.pop(); 
+      }
     }
+
+
+    const urlCharacterCounts: { url: string; characterCount: number }[] = [];
+  
+    // Crawl each unique URL and calculate the character count
+    for (const uniqueURL of urls) {
+      const characterCount = await this.getCharacterCount(uniqueURL);
+      urlCharacterCounts.push({ url: uniqueURL, characterCount });
+    }
+    const sortedURLs = urlCharacterCounts.sort((a, b) => b.characterCount - a.characterCount);
+    const primaryURLData = sortedURLs.find(item => item.url === baseUrl);
+    let selectedURLs = [];
+    let totalCharacterCount = 0;
+    const minCharacterCount = 6000;
+    const maxCharacterCount = 25000;
+
+
+    selectedURLs.push(primaryURLData);
+    totalCharacterCount = primaryURLData.characterCount;
+
+
+    for (const urlData of sortedURLs) {
+      if (urlData.url === baseUrl) {
+        continue;
+      }
+     
+      // Check if adding the next URL keeps the total within the 25,000 character limit
+      if (totalCharacterCount + urlData.characterCount > maxCharacterCount) {
+        continue;
+      }
+
+      selectedURLs.push(urlData);
+      totalCharacterCount += urlData.characterCount;
+      
+
+      // If the total character count is within the range and we've added 4 or 5 URLs, stop adding more
+      if (totalCharacterCount >= minCharacterCount && selectedURLs.length >= 4) {
+        break;
+      }
+    }
+
+
+    if (totalCharacterCount < minCharacterCount || selectedURLs.length < 2) {
+        return await this.getAvliableLinkCherio(baseUrl)
+    }
+
+    return selectedURLs.map(item=>item.url)
+
   }
   
   
@@ -169,6 +248,32 @@ export class CrawlerService {
         console.log(`Failed to fetch content from ${url}`, err);
         return 0; // In case of failure, return 0 to avoid breaking the process
     }
+}
+
+async getSitemapURLs(baseURL: string): Promise<string[]> {
+  try {
+    const sitemapURL = `${baseURL}/sitemap.xml`;
+    const response = await axios.get(sitemapURL);
+    const sitemapXML = response.data;
+    
+    // Parse sitemap XML
+    const $ = cheerio.load(sitemapXML, { xmlMode: true });
+    let urls: string[] = [];
+    
+    $('url > loc').each((i, elem) => {
+      urls.push($(elem).text());
+    });
+    urls = [...new Set(urls)]
+    if(urls.length > 4){
+      return urls.slice(0,4)
+    };
+
+    return urls;
+
+  } catch (err) {
+    console.log(`Failed to fetch or parse sitemap for ${baseURL}`, err);
+    return []; // Return an empty array if fetching or parsing the sitemap fails
+  }
 }
 
   //this service for emiit for crawler services
