@@ -1,5 +1,5 @@
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { JwtService } from '@nestjs/jwt';
 
@@ -15,18 +15,13 @@ export class WidgetService {
   constructor(
     private readonly prismaService: PrismaService,
     private jwtService: JwtService,) {}
-  private async _decodeWidgetTokenService(token: string) {
-    try {
-      const payload = (await this.jwtService.verify(
-        token,
-      )) ;
-      if (!payload) {
-        return null;
+    private async _decodeWidgetTokenService(token: string) {
+      try {
+          const payload = await this.jwtService.verify(token);
+          return payload;
+      } catch (error) {
+          throw new UnauthorizedException('Token verification failed.');
       }
-      return payload;
-    } catch (error) {
-      return null;
-    }
   }
   private _toCamelCase(obj: any): any {
     if (Array.isArray(obj)) {
@@ -42,12 +37,17 @@ export class WidgetService {
     }
     return obj;
   }
+
   async getCollectionNameService(token: string) {
     const decoded = await this._decodeWidgetTokenService(token);
+    if (!decoded || !decoded.sub?.botId) {
+        throw new UnauthorizedException('Invalid or expired token.');
+    }
+
     return {
-      collection: decoded?.sub.botId,
+        collection: decoded.sub.botId,
     };
-  }
+}
   async generateWidgetTokenService({
     userId,
     botId,
@@ -64,6 +64,7 @@ export class WidgetService {
     return token;
   }
   async getBotConfigService({ botId }: { botId: string }) {
+    console.log(botId)
     const foundBotConfig = await this.prismaService.bots.findFirst({
       where: {
         bot_id: botId,
@@ -76,6 +77,7 @@ export class WidgetService {
         status:true
       },
     });
+    console.log(foundBotConfig)
 
     return this._toCamelCase(foundBotConfig);
   }

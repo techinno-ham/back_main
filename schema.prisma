@@ -81,6 +81,8 @@ model datasources {
   knowledge_base Json?   @default("{}")
   total_char     String? @db.VarChar(255)
   bot            bots    @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade)
+  created_at           DateTime       @default(now())
+  updated_at           DateTime       @updatedAt
 }
 
 model conversations {
