@@ -98,7 +98,7 @@ export class MyBotsService {
       user_msg_bg_color: "#3b81f6",
       bot_image: `${process.env.S3_HOST}/bot-resources/defualtImage/bot.svg`,
       bot_image_border_color: "#000",
-      bot_widget_border_color: "#6495ed",
+      bot_widget_border_color: "#FFF",
       bot_widget_position: "right",
       notificationMsgs:"👋 من اینجا هستم تا به شما کمک کنم.",
       notification_msg_delay: 2000,
@@ -428,6 +428,7 @@ export class MyBotsService {
           security_configs: true,
           evals: true,
           status: true,
+          bot_id_hash:true,
       },
       });
       if (!configs) {
