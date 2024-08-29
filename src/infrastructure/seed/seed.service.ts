@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { S3Service } from '../s3/s3.service';
+import { join } from 'path';
+import { readFileSync } from 'fs';
 
 @Injectable()
 export class SeedService {
@@ -58,12 +60,39 @@ export class SeedService {
       'widget',
       'hamyar-resources'
     ];
+    const defaultProfileImagePath = join(process.cwd(), 'assets', 'profile.svg');
+    const botImagePath = join(process.cwd(), 'assets', 'bot.svg');
+
+    const profileImageBuffer = readFileSync(defaultProfileImagePath);
+    const botImageBuffer = readFileSync(botImagePath);
 
     try {
       // Create a promise for ensuring all buckets are created
       const bucketCreationPromise = Promise.all(
         bucketNames.map(bucketName => this.s3Service.ensureBucketExists(bucketName))
       );
+
+            // Ensure default profile image exists
+            const profileImageBucketName = 'user-resources'; // Adjust bucket name if different
+            const profileImageExists = await this.s3Service.fileExists(profileImageBucketName, 'defaultProfile/profile.svg');
+            console.log(profileImageExists)
+            if (!profileImageExists) {
+              await this.s3Service.uploadFile(profileImageBucketName, '', 'defaultProfile/profile.svg', profileImageBuffer);
+              this.logger.log('Uploaded default profile image.');
+            } else {
+              this.logger.log('Default profile image already exists.');
+            }
+
+                  // Ensure default bot image exists
+      const botImageBucketName = 'bot-resources'; // Adjust bucket name if different
+      const botImageExists = await this.s3Service.fileExists(botImageBucketName, 'defaultImage/bot.svg');
+      if (!botImageExists) {
+        await this.s3Service.uploadFile(botImageBucketName, '', 'defaultImage/bot.svg', botImageBuffer);
+        this.logger.log('Uploaded default bot image.');
+      } else {
+        this.logger.log('Default bot image already exists.');
+      }
+      
 
       // Create a promise for seeding all pricing tiers
       const pricingTierSeedingPromise = Promise.all(

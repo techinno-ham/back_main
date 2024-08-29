@@ -41,6 +41,18 @@ export class S3Service {
       }
     }
   }
+  async fileExists(bucketName: string, key: string): Promise<boolean> {
+    try {
+      await this.s3.headObject({ Bucket: bucketName, Key: key }).promise();
+      return true; // File exists
+    } catch (error) {
+      if (error.code === 'NotFound') {
+        return false; // File does not exist
+      }
+      this.logger.error(`Error checking file ${key} in bucket ${bucketName}`, error.stack);
+      throw error; // Rethrow the error for further handling
+    }
+  }
 async uploadFile(bucketName: string, Id: string, objectName: string, fileContent: Buffer): Promise<void> {
   const objectKey = `${Id}/${objectName}`;
   const contentType = this.getContentType(objectName);
