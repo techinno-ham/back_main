@@ -126,15 +126,23 @@ export class MyBotsService {
           security_configs: securityConfigs,
         },
       });
+
+      
       const payload = {
         sub: {
           botId:createdBot.bot_id
         },
       };
+      const token = this.jwtService.sign(payload, { expiresIn: '30d' });
+
+      // Optionally: Use only the first part of the token to shorten it
+      const shortToken = token.split('.')[2].substring(0, 16); // Shorten the signature part
+
       await this.prismaService.bots.update({
-        where: { bot_id: createdBot.bot_id },
-        data: { bot_id_hash: this.jwtService.sign(payload, { expiresIn: '30d' }) },
+          where: { bot_id: createdBot.bot_id },
+          data: { bot_id_hash: shortToken },
       });
+
       return createdBot;
     } catch (error) {
       console.log(error);

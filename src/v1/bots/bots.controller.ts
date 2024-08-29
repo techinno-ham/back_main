@@ -83,6 +83,7 @@ export class MyBotsController {
       const filesInfo = await Promise.all(
         files.map(async (file) => {
           const originalName = iconv.decode(Buffer.from(file.originalname, 'binary'), 'utf8');
+      
           await this.s3Service.uploadFile(bucketName, botId, originalName, file.buffer);
           
           return {
