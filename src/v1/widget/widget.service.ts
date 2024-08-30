@@ -2,6 +2,7 @@ import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
 
 interface payloadJWT {
   userId: string;
@@ -15,13 +16,26 @@ export class WidgetService {
   constructor(
     private readonly prismaService: PrismaService,
     private jwtService: JwtService,) {}
-    private async _decodeWidgetTokenService(token: string) {
-      try {
-          const payload = await this.jwtService.verify(token);
-          return payload;
-      } catch (error) {
-          throw new UnauthorizedException('Token verification failed.');
-      }
+   
+  private generateChecksum(botId: string, secret: string): string {
+    return crypto
+      .createHmac('sha256', secret)
+      .update(botId)
+      .digest('hex')
+      .slice(0, 8); // Shorter checksum for brevity
+  }
+
+
+
+  private decodeToken(token: string): { botId: string, isValid: boolean } {
+    const secret = process.env.TOKEN_SECRET || 'defaultSecret';
+    const decodedToken = Buffer.from(token, 'base64').toString('utf8');
+    const [botId, checksum] = decodedToken.split('.');
+    
+    const expectedChecksum = this.generateChecksum(botId, secret);
+    const isValid = expectedChecksum === checksum;
+    
+    return { botId, isValid };
   }
   private _toCamelCase(obj: any): any {
     if (Array.isArray(obj)) {
@@ -39,15 +53,16 @@ export class WidgetService {
   }
 
   async getCollectionNameService(token: string) {
-    const decoded = await this._decodeWidgetTokenService(token);
-    if (!decoded || !decoded.sub?.botId) {
-        throw new UnauthorizedException('Invalid or expired token.');
+    const decoded = this.decodeToken(token);
+
+    if (!decoded.isValid || !decoded.botId) {
+      throw new UnauthorizedException('Invalid or expired token.');
     }
 
     return {
-        collection: decoded.sub.botId,
+      collection: decoded.botId,
     };
-}
+  }
   async generateWidgetTokenService({
     userId,
     botId,

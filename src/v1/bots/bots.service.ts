@@ -10,6 +10,7 @@ import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 import { ClientKafka } from '@nestjs/microservices';
 import { subDays, subMonths } from 'date-fns';
 import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class MyBotsService {
@@ -61,6 +62,20 @@ export class MyBotsService {
       }
   });
   
+  }
+  private generateChecksum(botId: string, secret: string): string {
+    return crypto
+      .createHmac('sha256', secret)
+      .update(botId)
+      .digest('hex')
+      .slice(0, 8); // Shorter checksum for brevity
+  }
+
+  private encodeToken(botId: string): string {
+    const secret = process.env.TOKEN_SECRET || 'defaultSecret';
+    const checksum = this.generateChecksum(botId, secret);
+    // Encode bot ID and checksum in base64
+    return Buffer.from(`${botId}.${checksum}`).toString('base64');
   }
 
   async cretaeBots(userId: string) {
@@ -128,19 +143,12 @@ export class MyBotsService {
       });
 
       
-      const payload = {
-        sub: {
-          botId:createdBot.bot_id
-        },
-      };
-      const token = this.jwtService.sign(payload, { expiresIn: '30d' });
+      const token = this.encodeToken(createdBot.bot_id);
 
-      // Optionally: Use only the first part of the token to shorten it
-      const shortToken = token.split('.')[2].substring(0, 16); // Shorten the signature part
-
+      
       await this.prismaService.bots.update({
-          where: { bot_id: createdBot.bot_id },
-          data: { bot_id_hash: shortToken },
+        where: { bot_id: createdBot.bot_id },
+        data: { bot_id_hash: token },
       });
 
       return createdBot;

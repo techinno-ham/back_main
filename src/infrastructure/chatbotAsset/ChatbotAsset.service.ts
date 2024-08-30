@@ -37,6 +37,16 @@ export class ChatbotAssetService {
     await this.uploadFileIfNotExists(bucketName, sourceWidgetPrefix, 'main.css');
 
 
+    const sourceWidgetPublicPrefix = `${versionName}/sourceWidget/public`;
+    await this.ensureSourceWidgetFolderExists(bucketName, sourceWidgetPublicPrefix);
+    await this.uploadFileIfNotExists(bucketName, sourceWidgetPublicPrefix, 'iranyekanwebregular.woff2');
+    await this.uploadFileIfNotExists(bucketName, sourceWidgetPublicPrefix, 'live-chat.svg');
+    await this.uploadFileIfNotExists(bucketName, sourceWidgetPublicPrefix, 'refresh-chat.svg');
+
+
+    
+
+
     
   }
 

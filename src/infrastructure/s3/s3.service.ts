@@ -98,7 +98,9 @@ private getContentType(fileName: string): string {
       return 'image/gif';
     case 'js': // Add this case for JavaScript files
       return 'application/javascript';
-      case 'css':
+    case 'woff2': // Font files
+      return 'font/woff2';
+    case 'css':
         return 'text/css'; // Correct MIME type for CSS files
     default:
       return 'application/octet-stream'; // Default to binary stream if unknown
