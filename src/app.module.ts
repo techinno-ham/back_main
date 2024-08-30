@@ -18,6 +18,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { SeedService } from './infrastructure/seed/seed.service';
 import { SeedModule } from './infrastructure/seed/seed.module';
 import { S3Module } from './infrastructure/s3/s3.module';
+import { ChatbotAssetModule } from './infrastructure/chatbotAsset/ChatbotAsset.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { S3Module } from './infrastructure/s3/s3.module';
     TasksModule,
     SeedModule,
     S3Module,
+    ChatbotAssetModule
   ],
   controllers: [AppController],
   providers: [
@@ -46,6 +48,7 @@ import { S3Module } from './infrastructure/s3/s3.module';
     ConsumerService,
     ChatService,
     SeedService,
+    ChatbotAssetModule,
     Logger
     //InitConsumer
   ],

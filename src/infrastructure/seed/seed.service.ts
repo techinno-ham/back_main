@@ -75,7 +75,6 @@ export class SeedService {
             // Ensure default profile image exists
             const profileImageBucketName = 'user-resources'; // Adjust bucket name if different
             const profileImageExists = await this.s3Service.fileExists(profileImageBucketName, 'defaultProfile/profile.svg');
-            console.log(profileImageExists)
             if (!profileImageExists) {
               await this.s3Service.uploadFile(profileImageBucketName, '', 'defaultProfile/profile.svg', profileImageBuffer);
               this.logger.log('Uploaded default profile image.');

@@ -16,6 +16,20 @@ export class S3Service {
     });
   }
 
+  async listObjectsWithPrefix(bucketName: string, prefix: string): Promise<AWS.S3.ListObjectsV2Output> {
+    try {
+      const params = {
+        Bucket: bucketName,
+        Prefix: prefix,
+      };
+      const data = await this.s3.listObjectsV2(params).promise();
+      return data;
+    } catch (error) {
+      this.logger.error(`Error listing objects with prefix ${prefix} in bucket ${bucketName}`, error.stack);
+      throw error;
+    }
+  }
+
   async createBucket(bucketName: string): Promise<void> {
     try {
       await this.s3.createBucket({ Bucket: bucketName }).promise();
@@ -82,6 +96,10 @@ private getContentType(fileName: string): string {
       return 'image/svg+xml';
     case 'gif':
       return 'image/gif';
+    case 'js': // Add this case for JavaScript files
+      return 'application/javascript';
+      case 'css':
+        return 'text/css'; // Correct MIME type for CSS files
     default:
       return 'application/octet-stream'; // Default to binary stream if unknown
   }

@@ -49,7 +49,7 @@
             // Load CSS
             var cssLink = document.createElement("link");
             cssLink.rel = "stylesheet";
-            cssLink.href = `http://84.46.250.91:9000/widget/sourceWidget/main.128ff2cd.css`;
+            cssLink.href = `http://84.46.250.91:9000/widget/v1.0.0/sourceWidget/main.css`;
             cssLink.onerror = function() {
                 console.error("Failed to load CSS for chatbot.");
             };
@@ -57,7 +57,7 @@
 
             // Load JavaScript
             var jsScript = document.createElement("script");
-            jsScript.src = `http://84.46.250.91:9000/widget/sourceWidget/main.b92ddb73.js`;
+            jsScript.src = `http://84.46.250.91:9000/widget/v1.0.0/sourceWidget/main.js`;
             jsScript.onerror = function() {
                 console.error("Failed to load JavaScript for chatbot.");
             };
