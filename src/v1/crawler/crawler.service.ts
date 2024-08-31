@@ -7,6 +7,44 @@ import * as cheerio from 'cheerio';
 export class CrawlerService {
   constructor(@Inject('KAFKA_SERVICE') private readonly client: ClientKafka) {}
 
+  private normalizeURL(url: string): string {
+    const urlObj = new URL(url);
+  
+    // Normalize protocol to https
+    urlObj.protocol = 'https:';
+  
+    // Remove trailing slash
+    if (urlObj.pathname.endsWith('/')) {
+      console.log(url)
+        urlObj.pathname = urlObj.pathname.slice(0, -1);
+    }
+  
+    // Remove default ports
+    if ((urlObj.protocol === 'http:' && urlObj.port === '80') || 
+        (urlObj.protocol === 'https:' && urlObj.port === '443')) {
+        urlObj.port = '';
+    }
+  
+    // Remove 'www.' subdomain
+    urlObj.hostname = urlObj.hostname.replace(/^www\./, '');
+  
+    // Remove fragment (hash)
+    urlObj.hash = '';
+  
+    // Convert to lowercase
+    urlObj.hostname = urlObj.hostname.toLowerCase();
+    urlObj.pathname = urlObj.pathname.toLowerCase();
+  
+    // Sort query parameters
+    const params = new URLSearchParams(urlObj.search);
+    urlObj.search = '';
+    [...params.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .forEach(([key, value]) => urlObj.searchParams.append(key, value));
+  
+    return urlObj.toString();
+  }
+
  
   async getavailableLink(url: string) {
     try {
@@ -32,31 +70,30 @@ export class CrawlerService {
       console.log(err);
     }
   }
+ 
 
   async getAvailableLinksDemo(url: string) {
     try {
-
+      const normalizedUrl= this.normalizeURL(url)
       const baseURL = new URL(url).origin;
-
-      if (url === baseURL) {
-         const sitemapURLs = await this.getSitemapURLs(baseURL);
-
-         if( sitemapURLs.length > 2 ){
-          console.log("here")
-            return  await this.getAvliableLinkSiteMap(sitemapURLs,url);
-         }else{
-          return  await this.getAvliableLinkCherio(url);
-         }
-        
+  
+      // Compare normalized URLs
+      if (normalizedUrl === baseURL) {
+        const sitemapURLs = await this.getSitemapURLs(baseURL);
+        if (sitemapURLs.length > 2) {
+          return await this.getAvliableLinkSiteMap(sitemapURLs, normalizedUrl);
+        } else {
+          return await this.getAvliableLinkCherio(normalizedUrl);
+        }
       } else {
-           return  await this.getAvliableLinkCherio(url);
+        return await this.getAvliableLinkCherio(normalizedUrl);
       }
-
     } catch (err) {
       console.log(err);
       throw new Error('Failed to fetch and parse URLs');
     }
   }
+  
 
 
   async getAvliableLinkCherio(url: string){
@@ -69,19 +106,20 @@ export class CrawlerService {
   
       // Get base URL to use for relative URLs
   
-      $(links).each(function (i, link) {
+      $(links).each((i, link) => {
         let href = $(link).attr('href');
-  
         if (href) {
           if (href.startsWith('/')) {
             href = baseURL + href;
           }
-  
           if (href.startsWith(baseURL)) {
-            allFoundURLs.push(href);
+            const normalizedUrl = this.normalizeURL(href);  // Use `this` correctly with arrow function
+            allFoundURLs.push(normalizedUrl);
           }
         }
       });
+      console.log(allFoundURLs)
+      
   
       // Remove duplicates and limit to a maximum of 10 unique URLs
       let uniqueURLs = [...new Set(allFoundURLs)].slice(0, 10);
@@ -117,7 +155,7 @@ export class CrawlerService {
       let selectedURLs = [];
       let totalCharacterCount = 0;
       const minCharacterCount = 6000;
-      const maxCharacterCount = 25000;
+      const maxCharacterCount = 30000;
   
       // Add primary URL first
       selectedURLs.push(primaryURLData);
@@ -260,13 +298,19 @@ async getSitemapURLs(baseURL: string): Promise<string[]> {
     const $ = cheerio.load(sitemapXML, { xmlMode: true });
     let urls: string[] = [];
     
+    // Normalize URLs by removing trailing slashes before adding them to the array
     $('url > loc').each((i, elem) => {
-      urls.push($(elem).text());
+      let url = $(elem).text();
+      urls.push(this.normalizeURL(url));
     });
-    urls = [...new Set(urls)]
-    if(urls.length > 4){
-      return urls.slice(0,4)
-    };
+    
+    // Remove duplicates by using Set
+    urls = [...new Set(urls)];
+    
+    // Limit to 5 URLs if there are more than 6
+    if (urls.length > 6) {
+      return urls.slice(0, 5);
+    }
 
     return urls;
 
@@ -275,6 +319,11 @@ async getSitemapURLs(baseURL: string): Promise<string[]> {
     return []; // Return an empty array if fetching or parsing the sitemap fails
   }
 }
+
+
+
+
+
 
   //this service for emiit for crawler services
   async sendUrlToCrawler(botId: string, urlArray: string[]) {
