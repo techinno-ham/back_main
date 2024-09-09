@@ -85,6 +85,7 @@ export class MyBotsController {
           const originalName = iconv.decode(Buffer.from(file.originalname, 'binary'), 'utf8');
       
           await this.s3Service.uploadFile(bucketName, botId, originalName, file.buffer);
+          console.log("uploaded file ...")
           
           return {
             link: `${fileUrlPrefix}/${bucketName}/${botId}/${originalName}`,

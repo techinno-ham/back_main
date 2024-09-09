@@ -198,7 +198,7 @@ export class AuthService {
       };
 
       const tokens = {
-        accessToken: this.jwtService.sign(payload, { expiresIn: '1d' }),
+        accessToken: this.jwtService.sign(payload, { expiresIn: '3d' }),
         refreshToken: this.jwtService.sign(payload, { expiresIn: '7d' }),
       };
 
