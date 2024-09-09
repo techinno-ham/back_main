@@ -19,6 +19,7 @@ import { SeedService } from './infrastructure/seed/seed.service';
 import { SeedModule } from './infrastructure/seed/seed.module';
 import { S3Module } from './infrastructure/s3/s3.module';
 import { ChatbotAssetModule } from './infrastructure/chatbotAsset/ChatbotAsset.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { ChatbotAssetModule } from './infrastructure/chatbotAsset/ChatbotAsset.m
     TasksModule,
     SeedModule,
     S3Module,
-    ChatbotAssetModule
+    ChatbotAssetModule,
+    HealthModule
   ],
   controllers: [AppController],
   providers: [
