@@ -19,9 +19,13 @@ const customFormat = format.printf(({timestamp, level, stack, message}) => {
 })
 
 const options = {
-    file: {
+    error: {
         filename: path.join(logsDir, 'error.log'),
         level: 'error'
+    },
+    info:{
+filename: path.join(logsDir, 'combine.log'),
+        level: 'info'
     },
     console: {
         level: 'silly'
@@ -46,11 +50,9 @@ const prodLogger = {
         format.json()
     ),
     transports: [
-        new transports.File(options.file),
-        new transports.File({
-            filename: path.join(logsDir, 'combine.log'),
-            level: 'info'
-        })
+        new transports.Console(options.console),
+        new transports.File(options.error),
+        new transports.File(options.info)
     ]
 }
 
