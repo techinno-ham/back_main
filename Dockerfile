@@ -110,6 +110,9 @@ ENV KAFKA_USERNAME=$KAFKA_USERNAME
     
     # Copy built application from builder stage
     COPY --from=builder /app/dist ./dist
+
+    COPY --from=builder /app/assets ./assets
+    COPY --from=builder /app/chatbotAsset ./chatbotAsset
     
     ENV NODE_ENV=production
     
