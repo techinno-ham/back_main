@@ -18,8 +18,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { SeedService } from './infrastructure/seed/seed.service';
 import { SeedModule } from './infrastructure/seed/seed.module';
 import { S3Module } from './infrastructure/s3/s3.module';
-import { ChatbotAssetModule } from './infrastructure/chatbotAsset/ChatbotAsset.module';
 import { HealthModule } from './health/health.module';
+import { ChatbotAssetModule } from './infrastructure/chatbotAsset/chatbotAsset.module';
 
 @Module({
   imports: [
