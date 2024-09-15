@@ -16,7 +16,10 @@ async function bootstrap() {
     logger: WinstonModule.createLogger({
       instance: instance,
     }),
-  });
+  })
+
+  app.use
+
   app.enableVersioning({
     type: VersioningType.URI,
   });

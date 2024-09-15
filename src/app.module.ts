@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common';
+import { Logger, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CrawlerModule } from './v1/crawler/crawler.module';
@@ -20,6 +20,7 @@ import { SeedModule } from './infrastructure/seed/seed.module';
 import { S3Module } from './infrastructure/s3/s3.module';
 import { HealthModule } from './health/health.module';
 import { ChatbotAssetModule } from './infrastructure/chatbotAsset/chatbotAsset.module';
+import { AppLoggerMiddleware } from './logger.middleware';
 
 @Module({
   imports: [
@@ -55,4 +56,10 @@ import { ChatbotAssetModule } from './infrastructure/chatbotAsset/chatbotAsset.m
     //InitConsumer
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AppLoggerMiddleware)
+      .forRoutes('*');
+  }
+}
