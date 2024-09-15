@@ -55,6 +55,7 @@ export class AuthController {
     
       return userCreated;
     } catch (error) {
+      console.log(error)
       if (error instanceof HttpException) {
         throw error; // Re-throw the original HttpException
       }
