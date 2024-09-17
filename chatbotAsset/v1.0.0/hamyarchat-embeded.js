@@ -18,7 +18,7 @@
             };
 
             // Fetch the collection data
-            const response = await fetch(`${process.env.BACKEND_URL}/widget/get-collection`, {
+            const response = await fetch(`https://hamyar.chat/api/widget/get-collection`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -49,7 +49,7 @@
             // Load CSS
             var cssLink = document.createElement("link");
             cssLink.rel = "stylesheet";
-            cssLink.href = `${process.env.CDN_URL}/widget/v1.0.0/sourceWidget/main.css`;
+            cssLink.href = `https://hamyar.chat/cdn/widget/v1.0.0/sourceWidget/main.css`;
             cssLink.onerror = function() {
                 console.error("Failed to load CSS for chatbot.");
             };
@@ -57,7 +57,7 @@
 
             // Load JavaScript
             var jsScript = document.createElement("script");
-            jsScript.src = `${process.env.CDN_URL}/widget/v1.0.0/sourceWidget/main.js`;
+            jsScript.src = `https://hamyar.chat/cdn/widget/v1.0.0/sourceWidget/main.js`;
             jsScript.onerror = function() {
                 console.error("Failed to load JavaScript for chatbot.");
             };
