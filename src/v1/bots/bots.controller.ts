@@ -1,4 +1,4 @@
-import { Controller, Get, HttpException, Post, Headers, HttpStatus } from '@nestjs/common';
+import { Controller, Get, HttpException, Post, Headers, HttpStatus, Logger } from '@nestjs/common';
 import {
   Body,
   Delete,
@@ -36,6 +36,7 @@ export class MyBotsController {
   constructor(
     private readonly mybotsServices: MyBotsService,
     private readonly s3Service: S3Service,
+    private readonly logger: Logger,
   ) {}
 
 
@@ -50,10 +51,12 @@ export class MyBotsController {
     @Body() botsDTO: BotCreate,
     @User() user?: any,
   ) {
+    this.logger.log('Creating a bot for user:', user?.user_id);
     if (typeof botsDTO.urls === 'string') {
       try {
         botsDTO.urls = JSON.parse(botsDTO.urls);
       } catch (err) {
+        this.logger.error('Invalid JSON format for urls', err);
         throw new error('Invalid JSON format for urls');
       }
     };
@@ -62,7 +65,8 @@ export class MyBotsController {
       try {
         botsDTO.qANDa_input = JSON.parse(botsDTO.qANDa_input);
       } catch (err) {
-        throw new error('Invalid JSON format for urls');
+        this.logger.error('Invalid JSON format for qANDa_input', err);
+        throw new HttpException('Invalid JSON format for qANDa_input', HttpStatus.BAD_REQUEST);
       }
     }
 
