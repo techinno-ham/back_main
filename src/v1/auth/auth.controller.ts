@@ -67,6 +67,10 @@ export class AuthController {
       }
 
       const userCreated = await this.authServices.createUserWithSubscription(userCreatDTO);
+
+      return await this.authServices.login(userCreated);
+
+
     
       return userCreated;
     } catch (error) {
