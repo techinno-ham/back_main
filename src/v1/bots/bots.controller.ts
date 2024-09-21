@@ -54,10 +54,10 @@ import * as iconv from 'iconv-lite';
   version: '1',
 })
 export class MyBotsController {
+  private readonly logger = new Logger(MyBotsController.name);
   constructor(
     private readonly mybotsServices: MyBotsService,
     private readonly s3Service: S3Service,
-    private readonly logger: Logger,
   ) {}
 
   @Post('/create')
