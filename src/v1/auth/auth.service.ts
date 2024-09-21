@@ -137,7 +137,7 @@ export class AuthService {
 
       if (!user) {
         this.logger.warn(`User with email ${email} not found`, this.SERVICE);
-        throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
+        throw new HttpException('Email not found', HttpStatus.UNAUTHORIZED);
       }
 
       if (!(await bcrypt.compare(password, user.passwordHash))) {
