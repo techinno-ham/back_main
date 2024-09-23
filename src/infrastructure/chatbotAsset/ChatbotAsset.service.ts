@@ -28,7 +28,7 @@ export class ChatbotAssetService {
     }
 
     // Upload hamyarchat-embeded.js script
-    await this.uploadFileIfNotExists(bucketName, versionName, 'hamyarchat-embeded.js');
+    await this.uploadFileIfNotExists(bucketName, versionName, 'hamyarchat-embedded.js');
 
     // Ensure sourceWidget folder exists and upload main.js and main.css
     const sourceWidgetPrefix = `${versionName}/sourceWidget`;
