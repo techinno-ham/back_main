@@ -102,6 +102,51 @@ export class AuthService {
     }
   }
 
+  async createUserWithSubscriptionGoogle(userInfo:any): Promise<UserEntity> {
+    try {
+      this.logger.log(`Creating user with subscription for email ${userInfo.email}`, this.SERVICE);
+      const passwordHash = await bcrypt.hash("12345678!@", process.env.SALT_BCRYPT);
+      const userId = uuidv4();
+      const subscriptionId = uuidv4();
+      const photoUrl = userInfo.picture
+
+      const createUser = this.prismaService.users.create({
+        data: {
+          user_id: userId,
+          name:userInfo.name,
+          lastName:userInfo.lastName,
+          email:userInfo.email,
+          passwordHash,
+          photoUrl,
+          activeSubscriptionId: subscriptionId,
+        },
+      });
+
+      const startDate = dayjs();
+      const endDate = startDate.add(30, 'day');
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+
+      const createSubscription = this.prismaService.subscription.create({
+        data: {
+          id: subscriptionId,
+          tier_id: 0,
+          user_id: userId,
+          start_date: formattedStartDate,
+          end_date: formattedEndDate,
+        },
+      });
+
+      const [createdUser] = await this.prismaService.$transaction([createUser, createSubscription]);
+
+      this.logger.log(`User with subscription created successfully - ${createdUser.user_id}`, this.SERVICE);
+      return new UserEntity(createdUser);
+    } catch (error) {
+      this.logger.error('Failed to create user with subscription', error.stack, this.SERVICE);
+      throw new HttpException('Failed to create user with subscription', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async findeByEmail(email: string): Promise<UserEntity | undefined> {
     try {
       this.logger.log(`Finding user by email ${email}`, this.SERVICE);
@@ -216,18 +261,21 @@ export class AuthService {
       if (!user) {
         throw new Error('User not found!!!');
       }
+      const existingUser = await this.findeByEmail(user.email);
 
-      const payload = {
-        username: user.email,
-        sub: {
-          name: user.name,
-        },
-      };
 
-      const jwt = this.jwtService.sign(payload);
+      //when not registred
+      if (!existingUser) {
+        const existingUser = await this.createUserWithSubscriptionGoogle(user);
 
-      this.logger.log(`OAuth login successful for user - ${user.user_id}`, this.SERVICE);
-      return { jwt };
+      //when past registred
+      }else{
+
+      }
+ 
+
+
+    
     } catch (error) {
       this.logger.error('Failed to OAuth login user', error.stack, this.SERVICE);
       throw new HttpException('Failed to OAuth login user', HttpStatus.INTERNAL_SERVER_ERROR);

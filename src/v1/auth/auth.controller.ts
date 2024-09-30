@@ -186,7 +186,7 @@ try {
     const FRONTEND_URL =process.env.FRONT_URL;
     try {
       this.logger.log('OAuth callback received for user:', req.user?.id || 'unknown');
-      const token = await this.authServices.oAuthLogin(req.user);
+      const config = await this.authServices.oAuthLogin(req.user);
       
       const redirectUrl = `${FRONTEND_URL}/oauth?token=${token.jwt}`;
       this.logger.log(`Redirecting to: ${redirectUrl}`);
