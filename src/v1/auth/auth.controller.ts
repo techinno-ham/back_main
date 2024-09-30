@@ -70,9 +70,6 @@ export class AuthController {
 
       return await this.authServices.login(userCreated);
 
-
-    
-      return userCreated;
     } catch (error) {
       this.logger.error(`Unexpected error during registration for email: ${userCreatDTO.email}`, error);
       if (error instanceof HttpException) {
