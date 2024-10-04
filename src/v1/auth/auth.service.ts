@@ -262,7 +262,7 @@ export class AuthService {
         throw new Error('User not found!!!');
       }
       const existingUser = await this.findeByEmail(user.email);
-      console.log(existingUser)
+      console.log(existingUser,"existingUser")
 
       //when not registred
       if (!existingUser) {
