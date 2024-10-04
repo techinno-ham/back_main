@@ -262,20 +262,25 @@ export class AuthService {
         throw new Error('User not found!!!');
       }
       const existingUser = await this.findeByEmail(user.email);
-
+      console.log(existingUser)
 
       //when not registred
       if (!existingUser) {
-        const existingUser = await this.createUserWithSubscriptionGoogle(user);
+        const userCreated = await this.createUserWithSubscriptionGoogle(user);
+        const loginInfo= await this.login(userCreated);
+        return {
+        token:loginInfo.accessToken,
+        isNew:true
+        }
 
       //when past registred
       }else{
-
+        const loginInfo= await this.login(user);
+        return {
+          token:loginInfo.accessToken,
+          isNew:false
+          }
       }
- 
-
-
-    
     } catch (error) {
       this.logger.error('Failed to OAuth login user', error.stack, this.SERVICE);
       throw new HttpException('Failed to OAuth login user', HttpStatus.INTERNAL_SERVER_ERROR);
