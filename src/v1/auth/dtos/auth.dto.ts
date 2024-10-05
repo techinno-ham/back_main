@@ -69,6 +69,13 @@ export class UserUpdateReq {
 }
 
 
+export class UserUpdatePassReq {
+  @IsString()
+  password: string;
+}
+
+
+
 export class UserEntity {
     constructor(partial: Partial<UserEntity>) {
       Object.assign(this, partial);

@@ -1,6 +1,6 @@
 import { Controller, Get, HttpException, Post,Headers, HttpStatus, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthPayloadDto, UserCreateReq, UserForgetPassReq, UserLoginReq, UserResetPassReq, UserUpdateReq } from './dtos/auth.dto';
+import { AuthPayloadDto, UserCreateReq, UserForgetPassReq, UserLoginReq, UserResetPassReq, UserUpdatePassReq, UserUpdateReq } from './dtos/auth.dto';
 import { Body, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common/decorators';
 import { Response } from 'express';
 import { Request } from 'express';
@@ -84,6 +84,33 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async status(@Req() req: Request){
     return req.user
+  };
+
+  @Post('set-password')
+  @UseGuards(JwtAuthGuard)
+  async SetPassword(
+    @User() user: any,
+    @Body() updateDataPass: UserUpdatePassReq
+  ){
+    try {
+      const userId = user.user_id;
+      const password=updateDataPass.password
+
+      this.logger.log(`Update attempt for user ID: ${userId}`);
+
+      const updatedUser = await this.authServices.updatePassword(userId, password);
+
+      return updatedUser;
+    } catch (error) {
+
+      this.logger.error(`Error updating user ID: ${user?.user_id || 'unknown'}`, error.stack);
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   };
 
   @Post('refresh')
@@ -188,8 +215,8 @@ try {
       this.logger.log('OAuth callback received for user:', req.user?.id || 'unknown');
       const config = await this.authServices.oAuthLogin(req.user);
       
-      // const redirectUrl = `${FRONTEND_URL}/oauth?token=${config.token}&isNew=${config.isNew}`;
-      const redirectUrl = `http://localhost:3000/oauth?token=${config.token}&isNew=${config.isNew}`;
+      const redirectUrl = `${FRONTEND_URL}/oauth?token=${config.token}&isNew=${config.isNew}`;
+      // const redirectUrl = `http://localhost:3000/oauth?token=${config.token}&isNew=${config.isNew}`;
 
       this.logger.log(`Redirecting to: ${redirectUrl}`);
 
@@ -206,6 +233,9 @@ try {
       });
     }
   }
+
+
+
 
 
 }

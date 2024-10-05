@@ -6,6 +6,7 @@ import {
   UserEntity,
   UserForgetPassReq,
   UserResetPassReq,
+  UserUpdatePassReq,
   UserUpdateReq,
 } from './dtos/auth.dto';
 // import { JwtService } from '@nestjs/jwt';
@@ -207,6 +208,26 @@ export class AuthService {
           user_id: userId,
         },
         data: { ...updateData },
+      });
+      this.logger.log(`User updated successfully - ${updatedUser.user_id}`, this.SERVICE);
+      return new UserEntity(updatedUser);
+    } catch (error) {
+      this.logger.error('Failed to update user', error.stack, this.SERVICE);
+      throw new HttpException('Failed to update user', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  };
+
+
+  async updatePassword(userId: string, newPassword: string): Promise<UserEntity> {
+    try {
+      this.logger.log(`Updating user with ID ${userId}`, this.SERVICE);
+      const passwordHash = await bcrypt.hash(newPassword, process.env.SALT_BCRYPT);
+      console.log(newPassword)
+      const updatedUser = await this.prismaService.users.update({
+        where: {
+          user_id: userId,
+        },
+        data: { passwordHash:passwordHash },
       });
       this.logger.log(`User updated successfully - ${updatedUser.user_id}`, this.SERVICE);
       return new UserEntity(updatedUser);
