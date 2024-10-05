@@ -74,6 +74,7 @@ export class AuthService {
           email,
           passwordHash,
           photoUrl,
+          changedPassInit:true,
           activeSubscriptionId: subscriptionId,
         },
       });
@@ -227,7 +228,7 @@ export class AuthService {
         where: {
           user_id: userId,
         },
-        data: { passwordHash:passwordHash },
+        data: { passwordHash:passwordHash,changedPassInit:true },
       });
       this.logger.log(`User updated successfully - ${updatedUser.user_id}`, this.SERVICE);
       return new UserEntity(updatedUser);
@@ -282,8 +283,9 @@ export class AuthService {
       if (!user) {
         throw new Error('User not found!!!');
       }
-      const existingUser = await this.findeByEmail(user.email);
-      console.log(existingUser,"existingUser")
+      const existingUser = await this.prismaService.users.findFirst({
+        where: { email:user.email},
+      });
 
       //when not registred
       if (!existingUser) {
@@ -291,7 +293,7 @@ export class AuthService {
         const loginInfo= await this.login(userCreated);
         return {
         token:loginInfo.accessToken,
-        isNew:true
+        isNeedChangePass:true
         }
 
       //when past registred
@@ -299,7 +301,7 @@ export class AuthService {
         const loginInfo= await this.login(user);
         return {
           token:loginInfo.accessToken,
-          isNew:false
+          isNeedChangePass:loginInfo.changedPassInit
           }
       }
     } catch (error) {
