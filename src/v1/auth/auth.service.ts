@@ -301,7 +301,7 @@ export class AuthService {
         const loginInfo= await this.login(user);
         return {
           token:loginInfo.accessToken,
-          isNeedChangePass:loginInfo.changedPassInit
+          isNeedChangePass:existingUser.changedPassInit
           }
       }
     } catch (error) {
