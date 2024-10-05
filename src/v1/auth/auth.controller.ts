@@ -214,6 +214,7 @@ try {
     try {
       this.logger.log('OAuth callback received for user:', req.user?.id || 'unknown');
       const config = await this.authServices.oAuthLogin(req.user);
+      console.log(config,"config ")
       
       const redirectUrl = `${FRONTEND_URL}/oauth?token=${config.token}&isNeedChangePass=${config.isNeedChangePass}`;
       // const redirectUrl = `http://localhost:3000/oauth?token=${config.token}&isNew=${config.isNew}`;
