@@ -74,7 +74,7 @@ export class AuthService {
           email,
           passwordHash,
           photoUrl,
-          changedPassInit:true,
+          isNeedChangePass:false,
           activeSubscriptionId: subscriptionId,
         },
       });
@@ -228,7 +228,7 @@ export class AuthService {
         where: {
           user_id: userId,
         },
-        data: { passwordHash:passwordHash,changedPassInit:true },
+        data: { passwordHash:passwordHash,isNeedChangePass:false },
       });
       this.logger.log(`User updated successfully - ${updatedUser.user_id}`, this.SERVICE);
       return new UserEntity(updatedUser);
@@ -301,7 +301,7 @@ export class AuthService {
         const loginInfo= await this.login(user);
         return {
           token:loginInfo.accessToken,
-          isNeedChangePass:existingUser.changedPassInit
+          isNeedChangePass:existingUser.isNeedChangePass 
           }
       }
     } catch (error) {

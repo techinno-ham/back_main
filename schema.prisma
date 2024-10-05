@@ -16,7 +16,7 @@ model users {
   mobileNumber  String?  @db.VarChar(255)
   organisation  String?  @db.VarChar(255)
   passwordHash String   @db.VarChar(255)
-  changedPassInit    Boolean         @default(false)
+  isNeedChangePass    Boolean         @default(true)
   created_at           DateTime       @default(now())
   updated_at           DateTime       @updatedAt
   bots                 bots[]
