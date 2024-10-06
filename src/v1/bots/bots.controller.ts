@@ -314,8 +314,11 @@ export class MyBotsController {
 
       data['files_info'] = [...data['files_info'], ...filesInfo];
     }
+    // change state odf bot to inprogress
+    await this.mybotsServices.changeSatausBot(botId,"inProgress")
 
     const updatedDataSource = await this.mybotsServices.updateDataSource(
+      botId,
       data,
       result.datasource_id,
     );

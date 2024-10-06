@@ -34,16 +34,18 @@ export class MyBotsService {
     }
     return obj;
   }
-  private async _pushJobToKafka(botId: any, datasourceId:any, data: any): Promise<void> {
+  private async _pushJobToKafka(botId: any, datasourceId:any, data: any,eventType: 'update' | 'create'): Promise<void> {
     type Datesources = 'text' | 'qa' | 'urls' | 'files';
 
     const kafkaMessage: {
       botId: any;
       datasourceId:any;
       datasources: Record<Datesources, any>;
+      event_type: 'update' | 'create';
     } = {
       botId,
       datasourceId,
+      event_type: eventType,
       datasources: {
         ...(data.text_input && { text: data.text_input }),
         ...(data.qANDa_input && { qa: data.qANDa_input }),
@@ -192,15 +194,17 @@ export class MyBotsService {
     };
   }
 
-  async updateDataSource(data: any,dataSourceId:string) {
+  async updateDataSource(botId:string,data: any,dataSourceId:string) {
     try {
-      const createdDataSource = await this.prismaService.datasources.update({
+      const updatedDataSource = await this.prismaService.datasources.update({
        where:{
         datasource_id:dataSourceId
        },
        data:data
       });
-      return createdDataSource;
+      this._pushJobToKafka(botId,dataSourceId, data,"update");
+
+      return updatedDataSource;
     } catch (error) {
       console.log(error);
     }
@@ -214,9 +218,28 @@ export class MyBotsService {
         data,
       });
 
-      this._pushJobToKafka(data.bot_id,createdDataSource.datasource_id, data);
+      this._pushJobToKafka(data.bot_id,createdDataSource.datasource_id, data,"create");
 
       return createdDataSource;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+  async changeSatausBot(botId: string,status:string) {
+
+    try {
+      const newStatus=await this.prismaService.bots.update({
+        where:{
+          bot_id:botId
+        },
+        data:{
+          status:status
+        }
+      })
+
+      return newStatus;
     } catch (error) {
       console.log(error);
     }
