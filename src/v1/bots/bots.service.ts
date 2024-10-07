@@ -354,7 +354,32 @@ export class MyBotsService {
 
     return this._toCamelCase(conversations);
   }
-
+  async getConversationsBySessionId(botId: string, sessionId: string) {
+    try {
+      // Fetch conversations for the given botId and sessionId
+      const conversations = await this.prismaService.conversations.findMany({
+        where: {
+          bot_id: botId,
+          session_id: sessionId,  // Filter by session ID
+        },
+        include: {
+          records: true,  // Include the records/messages in the response
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
+  
+      if (!conversations || conversations.length === 0) {
+        return null;
+      }
+  
+      return this._toCamelCase(conversations);
+    } catch (error) {
+      console.log('Error fetching conversations by session ID:', error);
+      throw new Error('Failed to fetch conversations.');
+    }
+  }
  
   async deleteBot(botId: string, userId: string): Promise<boolean> {
     try {

@@ -595,6 +595,38 @@ export class MyBotsController {
     }
   }
 
+
+  @Get(':botId/conversations/session')
+   async getConversationsBySessionId(
+  @Param('botId') botId: string,
+  @ChatSessionId() sessionId: string,  // Extract sessionId from cookies
+) {
+  this.logger.log(`Retrieving conversations for bot ID: ${botId}, session ID: ${sessionId}`);
+
+  try {
+
+
+    if(!sessionId){
+      this.logger.warn(`No conversations found for bot ID: ${botId}, session ID: ${sessionId}`);
+      throw new HttpException('No conversations found', HttpStatus.NOT_FOUND);
+    }
+  
+    const conversations = await this.mybotsServices.getConversationsBySessionId(botId, sessionId);
+
+    if (!conversations || conversations.length === 0) {
+      this.logger.warn(`No conversations found for bot ID: ${botId}, session ID: ${sessionId}`);
+      throw new HttpException('No conversations found', HttpStatus.NOT_FOUND);
+    }
+
+    this.logger.log(`Successfully retrieved ${conversations.length} conversations for bot ID: ${botId}, session ID: ${sessionId}`);
+    return conversations;
+
+  } catch (error) {
+    this.logger.error(`Error retrieving conversations for bot ID: ${botId}, session ID: ${sessionId}`, error.stack);
+    throw new HttpException('Failed to retrieve conversations. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
   @UseGuards(JwtAuthGuard)
   @Get(':botId/conversations/:conversationId')
   async getBotConversationById(
