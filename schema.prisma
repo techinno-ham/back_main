@@ -98,7 +98,7 @@ model conversations {
   records         records[]
   bot             bots      @relation(fields: [bot_id], references: [bot_id])
 }
-
+ 
 model records {
   record_id         String        @id
   conversation_id   String

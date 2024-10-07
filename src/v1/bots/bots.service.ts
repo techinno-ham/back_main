@@ -228,7 +228,6 @@ export class MyBotsService {
 
 
   async changeSatausBot(botId: string,status:string) {
-
     try {
       const newStatus=await this.prismaService.bots.update({
         where:{

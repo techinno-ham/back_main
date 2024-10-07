@@ -536,38 +536,38 @@ export class MyBotsController {
   async createConversation(
     @Param('botId') botId: string,
     @Body() createConversationDto: CreateConversationDto,
-    @ChatSessionId() sessionId: string,
-    @Ip() userIP,
+    @ChatSessionId() sessionId: string, // Will hold the session ID from cookie if available
+    @Ip() userIP: string,
     @Res() res: Response,
   ) {
     this.logger.log(`Creating conversation for bot ID: ${botId}, user IP: ${userIP}`);
-
     const widgetVersion = createConversationDto.widgetVersion;
-    //const userLocation = await this.getUserLocation(userIP); // Function to fetch user location from IP
-
+  
     try {
-    let currentSessionId = sessionId;
-    let createConversation: {
-      sessionId: string;
-      conversationId: string;
-    };
-    if (!currentSessionId) {
-      currentSessionId = uuidv4();
-      createConversation = await this.mybotsServices.createConversation({
+      let currentSessionId = sessionId;
+      if (!currentSessionId) {
+        currentSessionId = uuidv4();  // Generate a new session ID
+        const oneDayMaxAge = 7 * 24 * 60 * 60 * 1000;  // 1 day in milliseconds
+        res.cookie('widget_session_id', currentSessionId, { maxAge: oneDayMaxAge, httpOnly: true });
+        this.logger.log(`New session ID created and set in cookie: ${currentSessionId}`);
+      } else {
+        this.logger.log(`Existing session ID found: ${currentSessionId}`);
+      }
+  
+      // Create the conversation
+      const createConversation = await this.mybotsServices.createConversation({
         botId,
         widgetVersion,
         sessionId: currentSessionId,
         userIP,
       });
-      const oneDayMaxAge = 24 * 60 * 60 * 1000;
-      res.cookie('session_id', currentSessionId, { maxAge: oneDayMaxAge });
+  
+      this.logger.log(`Conversation created successfully for bot ID: ${botId}, conversation ID: ${createConversation.conversationId}`);
+      return res.json({ conversationId: createConversation.conversationId });
+    } catch (error) {
+      this.logger.error(`Error creating conversation for bot ID: ${botId}, user IP: ${userIP}`, error.stack);
+      throw new HttpException('Failed to create conversation. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    this.logger.log(`Conversation created successfully for bot ID: ${botId}, conversation ID: ${createConversation.conversationId}`);
-    return res.json({ conversationId: createConversation?.conversationId });
-  }catch (error) {
-    this.logger.error(`Error creating conversation for bot ID: ${botId}, user IP: ${userIP}`, error.stack);
-    throw new HttpException('Failed to create conversation. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
-  }
   }
 
   //@UseGuards(JwtAuthGuard)
