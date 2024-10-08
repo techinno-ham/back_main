@@ -599,12 +599,17 @@ export class MyBotsController {
   @Get(':botId/conversations/session')
    async getConversationsBySessionId(
   @Param('botId') botId: string,
-  @ChatSessionId() sessionId: string,  // Extract sessionId from cookies
+  @ChatSessionId() sessionId: string, 
+  @Req() request: Request,
 ) {
+  const cookies = request.cookies; // This will give you all cookies as an object
+    
+  // Logging all cookies
+  console.log('All cookies:', cookies);
   this.logger.log(`Retrieving conversations for bot ID: ${botId}, session ID: ${sessionId}`);
 
   try {
-
+    console.log(sessionId)
 
     if(!sessionId){
       this.logger.warn(`No conversations found for bot ID: ${botId}, session ID: ${sessionId}`);

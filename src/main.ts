@@ -8,6 +8,7 @@ import { instance } from './infrastructure/logger/winston.logger';
 import { SeedService } from './infrastructure/seed/seed.service';
 import './amp';
 import { ChatbotAssetService } from './infrastructure/chatbotAsset/ChatbotAsset.service';
+import * as cookieParser from 'cookie-parser';
 
 
 async function bootstrap() {
@@ -18,7 +19,14 @@ async function bootstrap() {
     }),
   })
 
-  app.use
+
+  app.enableCors({
+    origin: '*', 
+    credentials: true,  
+  });
+
+
+  app.use(cookieParser());
 
   app.enableVersioning({
     type: VersioningType.URI,
