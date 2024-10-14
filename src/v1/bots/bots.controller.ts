@@ -535,35 +535,38 @@ export class MyBotsController {
   @Post(':botId/conversations')
   async createConversation(
     @Param('botId') botId: string,
-    @Body() createConversationDto: CreateConversationDto,
-    @ChatSessionId() sessionId: string, // Will hold the session ID from cookie if available
+    @ChatSessionId() sessionId: string, 
     @Ip() userIP: string,
     @Res() res: Response,
   ) {
     this.logger.log(`Creating conversation for bot ID: ${botId}, user IP: ${userIP}`);
-    const widgetVersion = createConversationDto.widgetVersion;
+    const widgetVersion = "v1.0.0";
   
     try {
-      let currentSessionId = sessionId;
-      if (!currentSessionId) {
-        currentSessionId = uuidv4();  // Generate a new session ID
+      console.log(sessionId,"sessionId")
+      if (!sessionId) {
+        sessionId = uuidv4();  // Generate a new session ID
         const oneDayMaxAge = 7 * 24 * 60 * 60 * 1000;  // 1 day in milliseconds
-        res.cookie('widget_session_id', currentSessionId, { maxAge: oneDayMaxAge, httpOnly: true });
-        this.logger.log(`New session ID created and set in cookie: ${currentSessionId}`);
+        res.cookie('widget_session_id', sessionId, {
+          maxAge: oneDayMaxAge,
+          httpOnly: true,
+          secure: true, 
+        });
+        this.logger.log(`New session ID created and set in cookie: ${sessionId}`);
       } else {
-        this.logger.log(`Existing session ID found: ${currentSessionId}`);
+        this.logger.log(`Existing session ID found: ${sessionId}`);
       }
   
       // Create the conversation
       const createConversation = await this.mybotsServices.createConversation({
         botId,
         widgetVersion,
-        sessionId: currentSessionId,
+        sessionId: sessionId,
         userIP,
       });
   
       this.logger.log(`Conversation created successfully for bot ID: ${botId}, conversation ID: ${createConversation.conversationId}`);
-      return res.json({ conversationId: createConversation.conversationId });
+      return res.json({ conversationId: createConversation.conversationId,sessionId:sessionId });
     } catch (error) {
       this.logger.error(`Error creating conversation for bot ID: ${botId}, user IP: ${userIP}`, error.stack);
       throw new HttpException('Failed to create conversation. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -597,40 +600,37 @@ export class MyBotsController {
 
 
   @Get(':botId/conversations/session')
-   async getConversationsBySessionId(
-  @Param('botId') botId: string,
-  @ChatSessionId() sessionId: string, 
-  @Req() request: Request,
-) {
-  const cookies = request.cookies; // This will give you all cookies as an object
-    
-  // Logging all cookies
-  console.log('All cookies:', cookies);
-  this.logger.log(`Retrieving conversations for bot ID: ${botId}, session ID: ${sessionId}`);
-
-  try {
-    console.log(sessionId)
-
-    if(!sessionId){
-      this.logger.warn(`No conversations found for bot ID: ${botId}, session ID: ${sessionId}`);
-      throw new HttpException('No conversations found', HttpStatus.NOT_FOUND);
-    }
+  async getConversationsBySessionId(
+    @Param('botId') botId: string,
+    @ChatSessionId() sessionId: string, 
+  ) {
+    this.logger.log(`Retrieving conversations for bot ID: ${botId}, session ID: ${sessionId}`);
   
-    const conversations = await this.mybotsServices.getConversationsBySessionId(botId, sessionId);
-
-    if (!conversations || conversations.length === 0) {
-      this.logger.warn(`No conversations found for bot ID: ${botId}, session ID: ${sessionId}`);
-      throw new HttpException('No conversations found', HttpStatus.NOT_FOUND);
+    try {
+      console.log(sessionId);
+  
+      if (!sessionId) {
+        this.logger.warn(`No conversations found for bot ID: ${botId}, session ID: ${sessionId}`);
+        return [];  // Return empty array instead of throwing exception
+      }
+    
+      const conversations = await this.mybotsServices.getConversationsBySessionId(botId, sessionId);
+      console.log(conversations);
+  
+      if (!conversations || conversations.length === 0) {
+        this.logger.warn(`No conversations found for bot ID: ${botId}, session ID: ${sessionId}`);
+        return [];  // Return empty array instead of throwing exception
+      }
+  
+      this.logger.log(`Successfully retrieved ${conversations.length} conversations for bot ID: ${botId}, session ID: ${sessionId}`);
+      return conversations;
+  
+    } catch (error) {
+      this.logger.error(`Error retrieving conversations for bot ID: ${botId}, session ID: ${sessionId}`, error.stack);
+      return [];  // Return empty array in case of any error
     }
-
-    this.logger.log(`Successfully retrieved ${conversations.length} conversations for bot ID: ${botId}, session ID: ${sessionId}`);
-    return conversations;
-
-  } catch (error) {
-    this.logger.error(`Error retrieving conversations for bot ID: ${botId}, session ID: ${sessionId}`, error.stack);
-    throw new HttpException('Failed to retrieve conversations. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
   }
-}
+  
 
   @UseGuards(JwtAuthGuard)
   @Get(':botId/conversations/:conversationId')
