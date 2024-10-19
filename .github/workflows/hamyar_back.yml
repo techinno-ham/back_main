@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      CDN_URL:${{secrets.CDN_URL}}
       CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
       DB_URL: ${{ secrets.DB_URL }}
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
@@ -73,6 +74,7 @@ jobs:
         tags: hamyarchat/back:latest
         build-args: |
           CALLBACK_URL=${{ secrets.CALLBACK_URL }}
+          CDN_URL=${{secrets.CDN_URL}}
           DB_URL=${{ secrets.DB_URL }}
           GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
