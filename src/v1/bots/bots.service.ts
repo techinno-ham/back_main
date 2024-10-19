@@ -135,6 +135,13 @@ export class MyBotsService {
 
     try {
       const randomBotName = getRandomPersianBotName(persianBotNames);
+      console.log(process.env.CDN_URL)
+      console.log({
+        user_id: userId,
+        name: randomBotName,
+        ui_configs: uiConfigs,
+        security_configs: securityConfigs,
+      },"data")
       const createdBot = await this.prismaService.bots.create({
         data: {
           user_id: userId,
