@@ -135,7 +135,7 @@ export class MyBotsService {
 
     try {
       const randomBotName = getRandomPersianBotName(persianBotNames);
-      console.log(process.env.CDN_URL)
+      console.log(process.env,'.env')
       console.log({
         user_id: userId,
         name: randomBotName,
