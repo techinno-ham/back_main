@@ -477,7 +477,7 @@ export class MyBotsController {
     if (image?.length) {
       const bucketName = 'bot-resources'; // The top-level bucket
       const bot_Id = botId;
-      const fileUrlPrefix = process.env.S3_HOST || 'http://localhost:12000';
+      const fileUrlPrefix = process.env.CDN_URL || 'http://localhost:12000';
       await this.s3Service.ensureBucketExists(bucketName);
       const originalName = iconv.decode(
         Buffer.from(image[0].originalname, 'binary'),
