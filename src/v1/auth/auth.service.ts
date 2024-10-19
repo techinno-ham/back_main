@@ -65,6 +65,7 @@ export class AuthService {
       const userId = uuidv4();
       const subscriptionId = uuidv4();
       const photoUrl = `${process.env.CDN_URL}/user-resources/defaultProfile/profile.svg`;
+      console.log(photoUrl)
 
       const createUser = this.prismaService.users.create({
         data: {
