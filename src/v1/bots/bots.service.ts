@@ -561,13 +561,36 @@ export class MyBotsService {
 
   async updateSecurityConfig(botId: string, userId: string, updateData:any ): Promise<any> {
     try {
-      const updatedConfig = await this.prismaService.bots.update({
+
+      const currentConfig = await this.prismaService.bots.findUnique({
+        where: { bot_id: botId, user_id: userId },
+        select: { security_configs: true },  
+      });
+
+      if (!currentConfig) {
+        throw new HttpException('Bot not found', 404);
+      };
+
+      let existingConfig:any = currentConfig.security_configs;
+
+      if (typeof existingConfig === 'string') {
+        existingConfig = JSON.parse(existingConfig);
+      }
+
+      const updatedConfig = {
+        ...existingConfig,  
+        ...updateData,  
+      };
+
+
+      const result = await this.prismaService.bots.update({
         where: { bot_id: botId, user_id: userId },
         data: {
-         security_configs:updateData
+          security_configs: updatedConfig,
         },
       });
-      if (!updatedConfig) {
+      
+      if (!result ) {
         throw new HttpException('Update failed', 404);
       }
       return updatedConfig;
