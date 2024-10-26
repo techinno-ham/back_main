@@ -43,6 +43,8 @@ export class ChatbotAssetService {
     await this.uploadFileIfNotExists(bucketName, sourceWidgetPublicPrefix, 'live-chat.svg');
     await this.uploadFileIfNotExists(bucketName, sourceWidgetPublicPrefix, 'refresh-chat.svg');
     await this.uploadFileIfNotExists(bucketName, sourceWidgetPublicPrefix, 'chat-bg.svg');
+    await this.uploadFileIfNotExists(bucketName, sourceWidgetPublicPrefix, 'botface.svg');
+
 
 
 
