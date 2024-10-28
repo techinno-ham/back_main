@@ -113,7 +113,7 @@ export class MyBotsService {
       bot_name: "hamyar chat",
       theme_bot:"light",
       user_msg_bg_color: "#3b81f6",
-      bot_image: `${process.env.CDN_URL}/bot-resources/defaultImage/bot.svg`,
+      bot_image: ``,
       bot_image_border_color: "#000",
       bot_widget_border_color: "#FFF",
       bot_widget_position: "right",
