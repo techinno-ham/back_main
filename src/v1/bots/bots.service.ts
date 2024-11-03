@@ -295,7 +295,11 @@ export class MyBotsService {
           bot_id: botId,
         },
         include: {
-          records: true, // Optionally include records if you want to fetch messages as well
+          records: {
+            orderBy: {
+              user_message_time: 'asc',  // Order from oldest to newest based on user_message_time
+            },
+          },
         },
       });
     } else {
@@ -363,7 +367,11 @@ export class MyBotsService {
           session_id: sessionId,  // Filter by session ID
         },
         include: {
-          records: true,  // Include the records/messages in the response
+          records: {
+            orderBy: {
+              user_message_time: 'asc',  // Order from oldest to newest based on user_message_time
+            },
+          },
         },
         orderBy: {
           created_at: 'desc',
