@@ -52,22 +52,30 @@ export class CrawlerService {
       const bodyHTML = response.data;
       const $ = cheerio.load(bodyHTML);
       const links = $('a');
-      const allFoundURLs = [];
-      $(links).each(function (i, link) {
+      const allFoundURLs: string[] = [];
+      const baseURL = new URL(url).origin;
+  
+      // Collect all found URLs, normalizing relative paths
+      $(links).each((i, link) => {
         let href = $(link).attr('href');
-        if (href[0] === '/') {
-          // useful for scenarios t==hat have / at the end of string
-          const urlWithoutSlash = href.substring(1);
-          href = url + href;
+        if (href) {
+          if (href.startsWith('/')) {
+            href = baseURL + href;
+          }
+          if (href.startsWith(baseURL)) {
+            const normalizedUrl = this.normalizeURL(href);  // Use `this` correctly with arrow function
+            allFoundURLs.push(normalizedUrl);
+          }
         }
-        allFoundURLs.push(href);
       });
-
+  
+      // Remove duplicates
       const uniqueURLs = [...new Set(allFoundURLs)];
-
+  
       return uniqueURLs;
     } catch (err) {
       console.log(err);
+      throw new Error('Failed to fetch and parse URLs');
     }
   }
  
