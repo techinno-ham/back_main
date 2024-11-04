@@ -127,6 +127,12 @@ export class MyBotsService {
       rate_limit_time: "240",
       rate_limit_msg_show: "تعداد درخواست شما زیاد تر از استاندارد بات می باشد.",
     };
+    const modelConfig={
+      model_name:"GPT-4o",
+      Temperature:"0.5",
+      type_nstructions:"",
+      Instructions:""
+    }
 
     function getRandomPersianBotName(names: string[]): string {
       const randomIndex = Math.floor(Math.random() * names.length);
@@ -141,6 +147,7 @@ export class MyBotsService {
           name: randomBotName,
           ui_configs: uiConfigs,
           security_configs: securityConfigs,
+          model_configs:modelConfig
         },
       });
 
