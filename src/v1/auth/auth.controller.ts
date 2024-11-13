@@ -48,8 +48,10 @@ export class AuthController {
       this.logger.error(`Unexpected error during login for user: ${email}`, error);
       if (error instanceof HttpException) {
         throw error;
+      }else {
+        throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+      
     }
   }
 
