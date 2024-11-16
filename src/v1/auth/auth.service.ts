@@ -197,6 +197,9 @@ export class AuthService {
       this.logger.log(`User validated successfully - ${user.user_id}`, this.SERVICE);
       return result;
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       this.logger.error('Failed to validate user', error.stack, this.SERVICE);
       throw new HttpException('Failed to validate user', HttpStatus.INTERNAL_SERVER_ERROR);
     }

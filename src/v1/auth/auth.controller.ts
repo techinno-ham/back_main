@@ -37,14 +37,12 @@ export class AuthController {
       this.logger.log(`Login attempt by user: ${email}`);
       
       const user = await this.authServices.validateUser(authPayloadDto);
-      if (!user) {
-        this.logger.warn(`Invalid login attempt by user, Email not found: ${email}`);
-        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-      }
+ 
 
       this.logger.log(`User ${email} logged in successfully`);
       return await this.authServices.login(user);
     } catch (error) {
+      console.log(error)
       this.logger.error(`Unexpected error during login for user: ${email}`, error);
       if (error instanceof HttpException) {
         throw error;
