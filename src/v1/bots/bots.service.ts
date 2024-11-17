@@ -112,6 +112,7 @@ export class MyBotsService {
       footer_msg: "hamyar.chat",
       bot_name: "همیارچت",
       theme_bot:"light",
+      user_msg_color: "#fff",
       user_msg_bg_color: "#3b81f6",
       bot_image: ``,
       bot_image_border_color: "#FFF",
