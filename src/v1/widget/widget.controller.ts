@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Logger, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Logger, NotFoundException, Param, Post } from '@nestjs/common';
 import { WidgetService } from './widget.service';
 import {
   GenerateWidgetTokenDto,
@@ -53,8 +53,15 @@ export class WidgetController {
       this.logger.log(`Successfully retrieved config for bot ID: ${botId}`);
       return config;
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        this.logger.warn(`Bot config not found for bot ID: ${botId}`);
+        throw error;
+      }
       this.logger.error(`Error fetching config for bot ID: ${botId}`, error.stack);
-      throw new HttpException('Failed to retrieve bot config. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Failed to retrieve bot config. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

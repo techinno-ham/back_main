@@ -1,5 +1,5 @@
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
@@ -13,6 +13,7 @@ interface payloadJWT {
 }
 @Injectable()
 export class WidgetService {
+  
   constructor(
     private readonly prismaService: PrismaService,
     private jwtService: JwtService,) {}
@@ -79,7 +80,6 @@ export class WidgetService {
     return token;
   }
   async getBotConfigService({ botId }: { botId: string }) {
-    console.log(botId)
     const foundBotConfig = await this.prismaService.bots.findFirst({
       where: {
         bot_id: botId,
@@ -92,7 +92,10 @@ export class WidgetService {
         status:true
       },
     });
-    console.log(foundBotConfig)
+
+    if (!foundBotConfig) {
+      throw new NotFoundException(`Bot config not found for bot ID: ${botId}`);
+    }
 
     return this._toCamelCase(foundBotConfig);
   }
