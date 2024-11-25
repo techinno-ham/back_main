@@ -36,9 +36,9 @@ async function bootstrap() {
   const seedService = app.get(SeedService);
   const ChatbotAssetServic = app.get(ChatbotAssetService);
 
-  await seedService.seed();
-  //befor use version upload check this version is exist in chatbotasset
-  await ChatbotAssetServic.uploadChatbotAsset('v1.0.0')
+  // await seedService.seed();
+  // //befor use version upload check this version is exist in chatbotasset
+  // await ChatbotAssetServic.uploadChatbotAsset('v1.0.0')
 
   await app.listen(12000);
 }
