@@ -6,7 +6,7 @@ import { join } from 'path';
 import { WinstonModule } from 'nest-winston';
 import { instance } from './infrastructure/logger/winston.logger';
 import { SeedService } from './infrastructure/seed/seed.service';
-import './amp';
+// import './amp';
 import { ChatbotAssetService } from './infrastructure/chatbotAsset/ChatbotAsset.service';
 import * as cookieParser from 'cookie-parser';
 
