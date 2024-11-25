@@ -42,6 +42,6 @@ async function bootstrap() {
 
 
   //https://stackoverflow.com/questions/66086427/docker-container-with-nodejs-appnestjs-is-not-accessible-from-both-other-conta
-  await app.listen("0.0.0.0:12000");
+  await app.listen(12000, '0.0.0.0');
 }
 bootstrap();
