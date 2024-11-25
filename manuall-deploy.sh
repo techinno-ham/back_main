@@ -1,0 +1,1 @@
+npm run build && npx prisma db push && npx prisma generate && node dist/main

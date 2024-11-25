@@ -20,10 +20,11 @@ async function bootstrap() {
   })
 
 
-  app.enableCors({
-    origin: true, 
-    credentials: true,  
-  });
+  // app.enableCors({
+  //   origin: true, 
+  //   credentials: true,  
+  // });
+  app.enableCors();
 
 
   app.use(cookieParser());
@@ -42,6 +43,7 @@ async function bootstrap() {
 
 
   //https://stackoverflow.com/questions/66086427/docker-container-with-nodejs-appnestjs-is-not-accessible-from-both-other-conta
-  await app.listen(12000, '0.0.0.0');
+  //await app.listen(12000, '0.0.0.0');
+  await app.listen(12000);
 }
 bootstrap();
