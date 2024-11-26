@@ -34,14 +34,14 @@ export class MyBotsService {
     }
     return obj;
   }
-  private async _pushJobToKafka(botId: any, datasourceId:any, data: any,eventType: 'update' | 'create'): Promise<void> {
+  private async _pushJobToKafka(botId: any, datasourceId:any, data: any,eventType: 'update' | 'create' | 'qa_update'): Promise<void> {
     type Datesources = 'text' | 'qa' | 'urls' | 'files';
 
     const kafkaMessage: {
       botId: any;
       datasourceId:any;
       datasources: Record<Datesources, any>;
-      event_type: 'update' | 'create';
+      event_type: 'update' | 'create' | 'qa_update';
     } = {
       botId,
       datasourceId,
