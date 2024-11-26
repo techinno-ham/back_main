@@ -227,6 +227,25 @@ export class MyBotsService {
     }
   };
 
+  async updateDataSourceQa(botId:string,allData: any,updatedData:any,dataSourceId:string) {
+    try {
+      const updatedDataSource = await this.prismaService.datasources.update({
+       where:{
+        datasource_id:dataSourceId
+       },
+       data:{qANDa_input:allData}
+      });
+      const qaData={
+        qANDa_input:updatedData
+      }
+      this._pushJobToKafka(botId,dataSourceId, qaData,"qa_update");
+
+      return updatedDataSource;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   async createDataSource(data: any) {
 

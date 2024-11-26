@@ -39,6 +39,12 @@ export class BotUpdateDataSource {
   @IsOptional()
   uploadedFile?:any;
 }
+
+export class BotUpdateDataSourceQA {
+  @IsArray()
+  @IsOptional()
+  qANDa_input?: [];
+}
 export class CreateConversationDto {
   @IsString()
   @IsNotEmpty()

@@ -23,6 +23,7 @@ import { MyBotsService } from './bots.service';
 import {
   BotCreate,
   BotUpdateDataSource,
+  BotUpdateDataSourceQA,
   CreateConversationDto,
 } from './dtos/mybots.dto';
 
@@ -215,6 +216,52 @@ export class MyBotsController {
     }
   }
 
+  @Post('/dataSource/update/qa/:bot_id')
+  @UseGuards(JwtAuthGuard)
+  async updateDataSourceQa(
+    @Body() botsDTO: BotUpdateDataSourceQA,
+    @User() user?: any,
+    @Param('bot_id') botId?: string,
+  ) {
+    this.logger.log(`Updating data sourceQa for bot ID: ${botId}, user ID: ${user?.user_id}`);
+    
+
+    if (typeof botsDTO.qANDa_input === 'string') {
+      try {
+        botsDTO.qANDa_input = JSON.parse(botsDTO.qANDa_input);
+      } catch (err) {
+        throw new error('Invalid JSON format for urls');
+      }
+    }
+
+    
+
+    try{
+    const result = await this.mybotsServices.findeDataSource(
+      botId,
+      user.user_id,
+    );
+    const qaDb=result.qANDa_input;
+    const allQa=[...qaDb,botsDTO.qANDa_input]
+
+    await this.mybotsServices.changeSatausBot(botId,"inProgress")
+
+    const updatedDataSource = await this.mybotsServices.updateDataSourceQa(
+      botId,
+      allQa,
+      qaDb,
+      result.datasource_id,
+    );
+    await this.mybotsServices.incrementUpdateDataSource(botId, user.user_id);
+    return updatedDataSource;
+  }catch (error) {
+    this.logger.error(`Error updating data source for bot ID: ${botId}`, error.stack);
+    throw new HttpException('Failed to update data source', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+  };
+
+
+
   @Post('/dataSource/update/:bot_id')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('files', 7))
@@ -328,7 +375,10 @@ export class MyBotsController {
     this.logger.error(`Error updating data source for bot ID: ${botId}`, error.stack);
     throw new HttpException('Failed to update data source', HttpStatus.INTERNAL_SERVER_ERROR);
   }
-  }
+  };
+
+
+
 
   @Get('/dataSource/:bot_id')
   @UseGuards(JwtAuthGuard)
