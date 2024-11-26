@@ -39,10 +39,15 @@ export class AppLoggerMiddleware implements NestMiddleware {
       const duration = Date.now() - startTime;
 
       // Log the request and response details
+      // this.logger.log(
+      //   `Method: ${method}, URL: ${url}, Status: ${statusCode}, Duration: ${duration}ms, Content-Length: ${contentLength}, Query: ${JSON.stringify(
+      //     query
+      //   )}, Request Body: ${JSON.stringify(body)}, Response Body: ${responseBody}, User-Agent: ${userAgent}, IP: ${ip}`
+      // );
       this.logger.log(
         `Method: ${method}, URL: ${url}, Status: ${statusCode}, Duration: ${duration}ms, Content-Length: ${contentLength}, Query: ${JSON.stringify(
           query
-        )}, Request Body: ${JSON.stringify(body)}, Response Body: ${responseBody}, User-Agent: ${userAgent}, IP: ${ip}`
+        )}, Response Body: ${responseBody}, User-Agent: ${userAgent}, IP: ${ip}`
       );
 
       // Ensure old end behavior is preserved
