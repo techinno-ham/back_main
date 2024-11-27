@@ -242,14 +242,14 @@ export class MyBotsController {
       user.user_id,
     );
     const qaDb=result.qANDa_input;
-    const allQa=[...qaDb,botsDTO.qANDa_input]
+    const allQa=[...qaDb,...botsDTO.qANDa_input];
 
-    await this.mybotsServices.changeSatausBot(botId,"inProgress")
+    // await this.mybotsServices.changeSatausBot(botId,"inProgress")
 
     const updatedDataSource = await this.mybotsServices.updateDataSourceQa(
       botId,
       allQa,
-      qaDb,
+      botsDTO.qANDa_input,
       result.datasource_id,
     );
     await this.mybotsServices.incrementUpdateDataSource(botId, user.user_id);
