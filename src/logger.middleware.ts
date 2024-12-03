@@ -47,7 +47,7 @@ export class AppLoggerMiddleware implements NestMiddleware {
       this.logger.log(
         `Method: ${method}, URL: ${url}, Status: ${statusCode}, Duration: ${duration}ms, Content-Length: ${contentLength}, Query: ${JSON.stringify(
           query
-        )}, Response Body: ${responseBody}, User-Agent: ${userAgent}, IP: ${ip}`
+        )}, User-Agent: ${userAgent}, IP: ${ip}`
       );
 
       // Ensure old end behavior is preserved
