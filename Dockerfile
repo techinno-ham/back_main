@@ -66,6 +66,9 @@ RUN npm run build
 FROM node:20-slim AS production
 WORKDIR /app
 
+# Install OpenSSL and other necessary dependencies
+RUN apt-get update -y && apt-get install -y openssl
+
 # Define build arguments
 ARG CALLBACK_URL
 ARG BACKEND_URL
