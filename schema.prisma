@@ -123,9 +123,9 @@ model records {
 model live_chat_conversations {
   conversation_id    String               @id @default(uuid())
   session_id         String
-  is_active          Boolean              @default(true) // Indicates if the session is ongoing
+  is_active          Boolean              @default(true)
   started_at         DateTime             @default(now())
-  ended_at           DateTime? // Nullable: Tracks when the session ends
+  ended_at           DateTime?
   live_chat_messages live_chat_messages[]
 }
 
