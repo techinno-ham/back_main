@@ -85,6 +85,7 @@ export class WidgetService {
         bot_id: botId,
       },
       select: {
+        name:true,
         general_configs: true,
         model_configs: true,
         ui_configs: true,
