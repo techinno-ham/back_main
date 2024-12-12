@@ -1,15 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
+import { v4 as uuidv4 } from 'uuid';
+import {
+  CreateLiveConversationResponseDto,
+  CreateMessageResponseDto,
+  LiveConversationsHistoryResponseDto,
+  BotConversationsResponseDto,
+} from './dtos/live.dto'; // Import your DTOs
 
 @Injectable()
 export class LiveService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  // Method for requesting a live conversation
   async requestLiveConversationService(
     conversationId: string,
     botId: string,
-    sessionId: string
-  ): Promise<void> {
+    sessionId: string,
+  ): Promise<CreateLiveConversationResponseDto> {
     try {
       const transactionResult = await this.prismaService.$transaction([
         this.prismaService.conversations.update({
@@ -17,7 +25,7 @@ export class LiveService {
             conversation_id: conversationId,
           },
           data: {
-            isLiveRequested: true, // Updated to indicate live request
+            isLiveRequested: true, // Indicating that a live request has been made
           },
         }),
         this.prismaService.live_chat_conversations.create({
@@ -29,17 +37,24 @@ export class LiveService {
         }),
       ]);
 
-      console.log('Transaction successful:', transactionResult);
+      // Parsing the result to the response DTO
+      const responseDto = new CreateLiveConversationResponseDto({
+        conversationId,
+        sessionId,
+      });
+
+      return responseDto; // Returning the DTO
     } catch (error) {
       console.error('Error in requestLiveConversationService:', error);
-      throw error; // Re-throwing error for further handling
+      throw new Error('Error requesting live conversation');
     }
   }
 
+  // Method for receiving a user message
   async receiveUserMessageService(
     conversationId: string,
-    message: string
-  ): Promise<void> {
+    message: string,
+  ): Promise<CreateMessageResponseDto> {
     try {
       const result = await this.prismaService.live_chat_messages.create({
         data: {
@@ -48,17 +63,25 @@ export class LiveService {
           message,
         },
       });
-      console.log('User message saved:', result);
+
+      // Parsing the result to the response DTO
+      const responseDto = new CreateMessageResponseDto({
+        messageId: result.message_id, // Assuming message_id is returned
+        sentAt: new Date().toISOString(),
+      });
+
+      return responseDto; // Returning the DTO
     } catch (error) {
       console.error('Error in receiveUserMessageService:', error);
-      throw error;
+      throw new Error('Error receiving user message');
     }
   }
 
+  // Method for receiving an operator message
   async receiveOperatorMessageService(
     conversationId: string,
-    message: string
-  ): Promise<void> {
+    message: string,
+  ): Promise<CreateMessageResponseDto> {
     try {
       const result = await this.prismaService.live_chat_messages.create({
         data: {
@@ -67,56 +90,89 @@ export class LiveService {
           message,
         },
       });
-      console.log('Operator message saved:', result);
+
+      // Parsing the result to the response DTO
+      const responseDto = new CreateMessageResponseDto({
+        messageId: result.message_id, // Assuming message_id is returned
+        sentAt: new Date().toISOString(),
+      });
+
+      return responseDto; // Returning the DTO
     } catch (error) {
       console.error('Error in receiveOperatorMessageService:', error);
-      throw error;
+      throw new Error('Error receiving operator message');
     }
   }
 
+  // Method for fetching the conversation history
   async fetchLiveConversationHistoryService(
-    conversationId: string
-  ): Promise<any> {
+    conversationId: string,
+  ): Promise<LiveConversationsHistoryResponseDto> {
     try {
-      const result = await this.prismaService.live_chat_conversations.findMany({
-        where: {
-          conversation_id: conversationId,
-        },
-        include: {
-          live_chat_messages: {
-            orderBy: {
-              sent_at: 'asc',
+      const conversation =
+        await this.prismaService.live_chat_conversations.findFirst({
+          where: {
+            conversation_id: conversationId,
+          },
+          include: {
+            live_chat_messages: {
+              orderBy: {
+                sent_at: 'asc',
+              },
             },
           },
-        },
+        });
+
+      if (!conversation) {
+        throw new Error(`Conversation with ID ${conversationId} not found.`);
+      }
+
+      const messages =
+        conversation.live_chat_messages?.map((message) => ({
+          sender: message.sender,
+          message: message.message,
+          sentAt: message.sent_at.toISOString(),
+        })) || [];
+
+      const responseDto = new LiveConversationsHistoryResponseDto({
+        botId: conversation.bot_id,
+        sessionId: conversation.session_id,
+        messages,
       });
-      console.log('Conversation history fetched:', result);
-      return result;
+
+      return responseDto;
     } catch (error) {
-      console.error('Error in fetchLiveConversationHistoryService:', error);
-      throw error;
+      console.error('Error fetching live conversation history:', error);
+      throw new Error('Failed to fetch live conversation history');
     }
   }
 
-  async fetchBotLiveConversationsService(botId: string): Promise<any> {
+  // Method for fetching bot live conversations
+  async fetchBotLiveConversationsService(
+    botId: string,
+  ): Promise<BotConversationsResponseDto> {
     try {
-      const result = await this.prismaService.bots.findMany({
+      const result = await this.prismaService.conversations.findMany({
         where: {
           bot_id: botId,
+          isLiveRequested: true,
         },
-        include: {
-          live_chat_conversations: {
-            select: {
-              conversation_id: true,
-            },
-          },
+        select: {
+          conversation_id: true,
         },
       });
-      console.log('Bot live conversations fetched:', result);
-      return result;
+
+      const responseDto = new BotConversationsResponseDto({
+        botId,
+        liveConversations: result.map((bot) => ({
+          conversationId: bot.conversation_id,
+        })),
+      });
+
+      return responseDto; // Returning the DTO
     } catch (error) {
       console.error('Error in fetchBotLiveConversationsService:', error);
-      throw error;
+      throw new Error('Error fetching bot live conversations');
     }
   }
 }

@@ -91,6 +91,7 @@ model conversations {
   conversation_id String    @id @default(uuid())
   bot_id          String
   widget_version  String
+  isLiveRequested Boolean   @default(false)
   session_id      String
   user_ip         String? // Optional field
   user_location   String? // Optional field
