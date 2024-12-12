@@ -49,25 +49,26 @@ model subscription {
 }
 
 model bots {
-  bot_id            String          @id @default(uuid())
-  name              String          @db.VarChar(255)
-  created_at        DateTime        @default(now())
-  updated_at        DateTime        @updatedAt
-  type              String?         @default("website")
-  user_id           String
-  general_configs   Json            @default("{\"has_memory\": false}")
-  model_configs     Json
-  ui_configs        Json
-  security_configs  Json
-  evals             Json            @default("{}")
-  status            String          @default("inProgress")
-  token_limit       Int             @default(8000000)
-  token_limit_pp    Int             @default(8000)
-  update_datasource Int             @default(0)
-  bot_id_hash       String          @default("")
-  datasource        datasources[]
-  user              users           @relation(fields: [user_id], references: [user_id])
-  conversations     conversations[]
+  bot_id                  String                    @id @default(uuid())
+  name                    String                    @db.VarChar(255)
+  created_at              DateTime                  @default(now())
+  updated_at              DateTime                  @updatedAt
+  type                    String?                   @default("website")
+  user_id                 String
+  general_configs         Json                      @default("{\"has_memory\": false}")
+  model_configs           Json
+  ui_configs              Json
+  security_configs        Json
+  evals                   Json                      @default("{}")
+  status                  String                    @default("inProgress")
+  token_limit             Int                       @default(8000000)
+  token_limit_pp          Int                       @default(8000)
+  update_datasource       Int                       @default(0)
+  bot_id_hash             String                    @default("")
+  datasource              datasources[]
+  user                    users                     @relation(fields: [user_id], references: [user_id])
+  conversations           conversations[]
+  live_chat_conversations live_chat_conversations[]
   //records          records[]
 }
 
@@ -123,9 +124,11 @@ model records {
 model live_chat_conversations {
   conversation_id    String               @id @default(uuid())
   session_id         String
+  bot_id             String
   is_active          Boolean              @default(true)
   started_at         DateTime             @default(now())
   ended_at           DateTime?
+  bot                bots                 @relation(fields: [bot_id], references: [bot_id])
   live_chat_messages live_chat_messages[]
 }
 
