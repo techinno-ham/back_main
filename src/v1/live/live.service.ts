@@ -18,6 +18,8 @@ export class LiveService {
     botId: string,
     sessionId: string,
   ): Promise<CreateLiveConversationResponseDto> {
+    console.log({ conversationId, botId, sessionId });
+
     try {
       const transactionResult = await this.prismaService.$transaction([
         this.prismaService.conversations.update({
@@ -25,14 +27,18 @@ export class LiveService {
             conversation_id: conversationId,
           },
           data: {
-            isLiveRequested: true, // Indicating that a live request has been made
+            isLiveRequested: true,
           },
         }),
         this.prismaService.live_chat_conversations.create({
           data: {
             conversation_id: conversationId,
-            bot_id: botId,
-            session_id: sessionId,
+            session_id: sessionId || "abc",
+            bot: {
+              connect: {
+                bot_id: botId,
+              },
+            },
           },
         }),
       ]);
@@ -58,9 +64,14 @@ export class LiveService {
     try {
       const result = await this.prismaService.live_chat_messages.create({
         data: {
-          conversation_id: conversationId,
+          // conversation_id: conversationId,
           sender: 'user',
           message,
+          live_chat_conversations: {
+            connect: {
+              conversation_id: conversationId,
+            },
+          },
         },
       });
 
@@ -85,9 +96,13 @@ export class LiveService {
     try {
       const result = await this.prismaService.live_chat_messages.create({
         data: {
-          conversation_id: conversationId,
           sender: 'operator',
           message,
+          live_chat_conversations: {
+            connect: {
+              conversation_id: conversationId,
+            },
+          },
         },
       });
 
