@@ -41,7 +41,7 @@ export class FormsService {
         return `${randomAdjective}${randomNoun}${Math.floor(Math.random() * 1000)}`; // Optional: Append a random number for uniqueness
       }
 
-  async createInitForm(data: any) {
+      async createInitForm(data: any) {
 
     const initConfigForm = {
         access_bot: "private",
@@ -65,7 +65,27 @@ export class FormsService {
       } catch (error) {
         console.log(error);
       }
-  }
+    };
+
+    async deleteForm(formId: string, userId: string): Promise<boolean> {
+        try {
+          const form = await this.prismaService.forms.findFirst({
+            where: { forms_id:formId },
+          });
+          if (!form) {
+            return false;
+          }
+    
+          await this.prismaService.forms.delete({
+            where: { forms_id: formId },
+          });
+    
+          return true;
+        } catch (error) {
+          console.log(error);
+          return false;
+        }
+      }
 
   
 };

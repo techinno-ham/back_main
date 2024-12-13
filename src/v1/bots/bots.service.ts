@@ -536,6 +536,7 @@ export class MyBotsService {
           evals: true,
           status: true,
           bot_id_hash:true,
+          forms:true
       },
       });
       if (!configs) {
