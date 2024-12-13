@@ -22,6 +22,7 @@ import { HealthModule } from './health/health.module';
 import { ChatbotAssetModule } from './infrastructure/chatbotAsset/chatbotAsset.module';
 import { AppLoggerMiddleware } from './logger.middleware';
 import { LiveModule } from './v1/live/live.module';
+import { FormsModule } from './v1/froms/froms.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { LiveModule } from './v1/live/live.module';
     ConfigModule.forRoot({ isGlobal: true }),
     ChatModule,
     WidgetModule,
+    FormsModule,
     {
       ...HttpModule.register({
         timeout: 15000,
