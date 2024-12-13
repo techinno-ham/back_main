@@ -68,6 +68,7 @@ model bots {
   datasource       datasources[]
   user             users           @relation(fields: [user_id], references: [user_id])
   conversations    conversations[]
+   forms            forms[] 
   //records          records[]
 }
 
@@ -84,6 +85,21 @@ model datasources {
   bot            bots    @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade)
   created_at           DateTime       @default(now())
   updated_at           DateTime       @updatedAt
+}
+
+
+
+
+model forms {
+  forms_id       String    @id @default(uuid()) 
+  bot_id         String    
+  created_at     DateTime  @default(now()) 
+  updated_at     DateTime  @updatedAt      
+  status         String    @default("active") 
+  submit_number  Int       @default(0)    
+  configs        Json      
+
+  bot            bots      @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade) // Relation to the `bots` model
 }
 
 model conversations {
