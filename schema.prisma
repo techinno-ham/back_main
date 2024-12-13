@@ -97,6 +97,7 @@ model forms {
   updated_at     DateTime  @updatedAt      
   status         String    @default("active") 
   submit_number  Int       @default(0)    
+  forms_name     String
   configs        Json      
 
   bot            bots      @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade) // Relation to the `bots` model
