@@ -18,7 +18,10 @@ import {
 } from './dtos/live.dto';
 import { LiveService } from './live.service';
 
-@Controller('live')
+@Controller({
+  path: 'live',
+  version: '1',
+})
 export class LiveController {
   private readonly logger = new Logger(LiveController.name);
 
