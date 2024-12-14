@@ -44,12 +44,17 @@ export class FormsService {
       async createInitForm(data: any) {
 
     const initConfigForm = {
-        access_bot: "private",
-        status_bot: "enable",
-        rate_limit_msg: "20",
-        rate_limit_time: "240",
-        rate_limit_msg_show: "تعداد درخواست شما زیاد تر از استاندارد بات می باشد.",
-      };
+      title: "عنوان",
+      description: "توضیحات",
+      name_active: true,
+      name_placeholder: "پیام شما ...",
+      email_active: true,
+      email_placeholder: "پیام شما ...",
+      phone_active: true,
+      phone_placeholder: "پیام شما ...",
+      message_end:"موفق امیز بود",
+      message_url:""
+  }
 
     try {
         const createdForm = await this.prismaService.forms.create({
