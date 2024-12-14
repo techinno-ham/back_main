@@ -95,7 +95,7 @@ model forms {
   bot_id         String    
   created_at     DateTime  @default(now()) 
   updated_at     DateTime  @updatedAt      
-  status         String    @default("active") 
+  status         String    @default("inactive") 
   submit_number  Int       @default(0)    
   forms_name     String
   configs        Json      

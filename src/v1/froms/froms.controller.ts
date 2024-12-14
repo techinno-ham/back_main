@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Delete, Param, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Delete, Param, HttpException, HttpStatus, Patch } from '@nestjs/common';
 import { FormsService } from './froms.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { User } from '../decorators/user.decorator';
@@ -35,7 +35,57 @@ export class FormsController {
       } catch (error) {
         throw new HttpException('Failed to delete Form. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
       }
+  };
+
+
+
+  @Patch('/inactive/:form_id')
+  @UseGuards(JwtAuthGuard)
+  async inactiveForm(
+    @Param('form_id') formId: string,
+    @User() user: any
+  ) {
+    try {
+      const result = await this.formsService.inactivateForm(formId, user.user_id);
+
+      if (result) {
+        return { message: 'Form inactivated successfully' };
+      } else {
+        throw new HttpException('Form not found or not authorized', HttpStatus.NOT_FOUND);
+      }
+    } catch (error) {
+      throw new HttpException(
+        'Failed to inactivate the form. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+
+  @Patch('/active/:form_id')
+  @UseGuards(JwtAuthGuard)
+  async activateForm(
+    @Param('form_id') formId: string,
+    @User() user: any
+  ) {
+    try {
+      const result = await this.formsService.activateForm(formId, user.user_id);
+
+      if (result) {
+        return { message: 'Form activated successfully' };
+      } else {
+        throw new HttpException('Form not found or not authorized', HttpStatus.NOT_FOUND);
+      }
+    } catch (error) {
+      throw new HttpException(
+        'Failed to activate the form. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
+
+
+
 
 
 

@@ -70,7 +70,15 @@ export class FormsService {
     async deleteForm(formId: string, userId: string): Promise<boolean> {
         try {
           const form = await this.prismaService.forms.findFirst({
-            where: { forms_id:formId },
+            where: {
+              forms_id: formId,
+              bot: {
+                user_id: userId, 
+              },
+            },
+            include: {
+              bot: true, 
+            },
           });
           if (!form) {
             return false;
@@ -83,6 +91,75 @@ export class FormsService {
           return true;
         } catch (error) {
           console.log(error);
+          return false;
+        }
+      };
+
+
+      async inactivateForm(formId: string, userId: string): Promise<boolean> {
+        try {
+          const form = await this.prismaService.forms.findFirst({
+            where: {
+              forms_id: formId,
+              bot: {
+                user_id: userId, 
+              },
+            },
+            include: {
+              bot: true, 
+            },
+          });
+    
+          if (!form) {
+            return false;
+          }
+    
+          await this.prismaService.forms.update({
+            where: { forms_id: formId },
+            data: { status: 'inactive' },
+          });
+    
+          return true;
+        } catch (error) {
+          console.error('Error inactivating form:', error);
+          return false;
+        }
+      };
+
+
+      async activateForm(formId: string, userId: string): Promise<boolean> {
+        try {
+          const form = await this.prismaService.forms.findFirst({
+            where: {
+              forms_id: formId,
+              bot: {
+                user_id: userId,
+              },
+            },
+            include: {
+              bot: true, 
+            },
+          });
+    
+          if (!form) {
+            return false;
+          }
+    
+          await this.prismaService.forms.updateMany({
+            where: {
+              bot_id: form.bot_id,
+            },
+            data: { status: 'inactive' },
+          });
+    
+          await this.prismaService.forms.update({
+            where: { forms_id: formId },
+            data: { status: 'active' },
+          });
+    
+          return true;
+        } catch (error) {
+          console.error('Error activating form:', error);
           return false;
         }
       }
