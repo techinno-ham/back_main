@@ -162,6 +162,25 @@ export class FormsService {
           console.error('Error activating form:', error);
           return false;
         }
+      };
+
+
+      async getFormById(formId: string, userId: string): Promise<any> {
+        try {
+          const form = await this.prismaService.forms.findFirst({
+            where: {
+              forms_id: formId,
+              bot: {
+                user_id: userId, 
+              },
+            }
+          });
+    
+          return form || null; 
+        } catch (error) {
+          console.error('Error fetching form by ID:', error);
+          throw error;
+        }
       }
 
   

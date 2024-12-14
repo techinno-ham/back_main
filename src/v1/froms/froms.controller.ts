@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Delete, Param, HttpException, HttpStatus, Patch } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Delete, Param, HttpException, HttpStatus, Patch, Get } from '@nestjs/common';
 import { FormsService } from './froms.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { User } from '../decorators/user.decorator';
@@ -79,6 +79,29 @@ export class FormsController {
     } catch (error) {
       throw new HttpException(
         'Failed to activate the form. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+
+  @Get('/:form_id')
+  @UseGuards(JwtAuthGuard)
+  async getFormById(
+    @Param('form_id') formId: string,
+    @User() user: any
+  ) {
+    try {
+      const form = await this.formsService.getFormById(formId, user.user_id);
+
+      if (!form) {
+        throw new HttpException('Form not found or not authorized', HttpStatus.NOT_FOUND);
+      }
+
+      return form;
+    } catch (error) {
+      throw new HttpException(
+        'Failed to fetch the form. Please try again later.',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
