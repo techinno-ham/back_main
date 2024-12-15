@@ -47,11 +47,11 @@ export class FormsService {
       title: "عنوان",
       description: "توضیحات",
       name_active: true,
-      name_placeholder: "پیام شما ...",
+      name_placeholder: "مثال: نام خود را وارد کنید...",
       email_active: true,
-      email_placeholder: "پیام شما ...",
+      email_placeholder: "مثال: ایمیل خود را وارد کنید...",
       phone_active: true,
-      phone_placeholder: "پیام شما ...",
+      phone_placeholder: "091211111111",
       message_end:"موفق امیز بود",
       message_url:""
   }
@@ -60,7 +60,6 @@ export class FormsService {
         const createdForm = await this.prismaService.forms.create({
           data: {
            bot_id:data.botId,
-           status:"inactive",
            forms_name:this.generateRandomName(),
            configs:initConfigForm
           },

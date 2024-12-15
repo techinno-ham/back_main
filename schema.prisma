@@ -10,18 +10,18 @@ datasource db {
 model users {
   user_id              String         @id @default(uuid())
   name                 String         @db.VarChar(255)
-  lastName     String?  @db.VarChar(255)
-  email        String?  @unique @db.VarChar(255)
-  photoUrl     String?  @db.VarChar(255)
-  mobileNumber  String?  @db.VarChar(255)
-  organisation  String?  @db.VarChar(255)
-  passwordHash String   @db.VarChar(255)
-  isNeedChangePass    Boolean         @default(true)
+  lastName             String?        @db.VarChar(255)
+  email                String?        @unique @db.VarChar(255)
+  photoUrl             String?        @db.VarChar(255)
+  mobileNumber         String?        @db.VarChar(255)
+  organisation         String?        @db.VarChar(255)
+  passwordHash         String         @db.VarChar(255)
+  isNeedChangePass     Boolean        @default(true)
   created_at           DateTime       @default(now())
   updated_at           DateTime       @updatedAt
+  activeSubscriptionId String?        @unique @db.VarChar(255)
   bots                 bots[]
-  activeSubscriptionId String?        @unique() @db.VarChar(255)  // Stores the ID of the active subscription
-  subscriptions        subscription[] // Array to store all subscriptions related to this user
+  subscriptions        subscription[]
 }
 
 model pricing_tier {
@@ -32,75 +32,72 @@ model pricing_tier {
   context_limit Int
   token_limit   Int
   storage_limit Int
-  //memory
-  //models
   subscriptions subscription[]
 }
 
 model subscription {
-  id         String       @id @default(uuid())
-  user_id    String
-  tier_id    Int          @default(0)
-  start_date DateTime
-  end_date   DateTime
-  token_usage Int @default(0)
-  user       users        @relation(fields: [user_id], references: [user_id])
-  tier       pricing_tier @relation(fields: [tier_id], references: [id])
+  id          String       @id @default(uuid())
+  user_id     String
+  tier_id     Int          @default(0)
+  start_date  DateTime
+  end_date    DateTime
+  token_usage Int          @default(0)
+  tier        pricing_tier @relation(fields: [tier_id], references: [id])
+  user        users        @relation(fields: [user_id], references: [user_id])
 }
 
 model bots {
-  bot_id           String          @id @default(uuid())
-  name             String          @db.VarChar(255)
-  created_at       DateTime        @default(now())
-  updated_at       DateTime        @updatedAt
-  type             String?         @default("website")
-  user_id          String
-  general_configs  Json            @default("{\"has_memory\": false}")
-  model_configs    Json            
-  ui_configs       Json
-  security_configs Json
-  evals            Json            @default("{}")
-  status           String          @default("inProgress")
-  token_limit      Int             @default(8000000)
-  token_limit_pp   Int             @default(8000)
-  update_datasource Int             @default(0)
-  bot_id_hash      String           @default("")
-  datasource       datasources[]
-  user             users           @relation(fields: [user_id], references: [user_id])
-  conversations    conversations[]
-   forms            forms[] 
-  //records          records[]
+  bot_id                  String                    @id @default(uuid())
+  name                    String                    @db.VarChar(255)
+  created_at              DateTime                  @default(now())
+  updated_at              DateTime                  @updatedAt
+  type                    String?                   @default("website")
+  user_id                 String
+  general_configs         Json                      @default("{\"has_memory\": false}")
+  model_configs           Json
+  ui_configs              Json
+  security_configs        Json
+  evals                   Json                      @default("{}")
+  status                  String                    @default("inProgress")
+  token_limit             Int                       @default(8000000)
+  token_limit_pp          Int                       @default(8000)
+  update_datasource       Int                       @default(0)
+  bot_id_hash             String                    @default("")
+  user                    users                     @relation(fields: [user_id], references: [user_id])
+  conversations           conversations[]
+  datasource              datasources[]
+  forms                   forms[]
+  live_chat_conversations live_chat_conversations[]
 }
 
 model datasources {
-  datasource_id  String  @id @default(uuid())
+  datasource_id  String   @id @default(uuid())
   bot_id         String
-  static_files   Json?   @default("[]")
-  files_info     Json?   @default("[]")
-  urls           Json?   @default("[]")
-  text_input     String? @default("") @db.Text
-  qANDa_input    Json?   @default("[]")
-  knowledge_base Json?   @default("{}")
-  total_char     String? @db.VarChar(255)
-  bot            bots    @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade)
-  created_at           DateTime       @default(now())
-  updated_at           DateTime       @updatedAt
+  static_files   Json?    @default("[]")
+  files_info     Json?    @default("[]")
+  urls           Json?    @default("[]")
+  text_input     String?  @default("")
+  qANDa_input    Json?    @default("[]")
+  knowledge_base Json?    @default("{}")
+  total_char     String?  @db.VarChar(255)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  bot            bots     @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade)
 }
 
-
-
-
 model forms {
-  forms_id       String    @id @default(uuid()) 
-  bot_id         String    
-  created_at     DateTime  @default(now()) 
-  updated_at     DateTime  @updatedAt      
-  status         String    @default("inactive") 
-  submit_number  Int       @default(0)    
-  forms_name     String
-  configs        Json      
-
-  bot            bots      @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade) // Relation to the `bots` model
+  forms_id      String   @id @default(uuid())
+  bot_id        String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  status        String   @default("inactive")
+  submit_number Int      @default(0)
+  forms_name    String
+  configs       Json
+  showIf_human          Boolean  @default(false)  
+  showIf_message        Boolean  @default(true)  
+  showIf_message_number Int      @default(5)  
+  bot           bots     @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade)
 }
 
 model conversations {
@@ -108,36 +105,27 @@ model conversations {
   bot_id          String
   widget_version  String
   session_id      String
-  user_ip         String? // Optional field
-  user_location   String? // Optional field
-  metadata        Json? // Optional field
+  user_ip         String?
+  user_location   String?
+  metadata        Json?
   created_at      DateTime  @default(now())
-  records         records[]
+  isLiveRequested Boolean   @default(false)
   bot             bots      @relation(fields: [bot_id], references: [bot_id])
+  records         records[]
 }
- 
+
 model records {
   record_id         String        @id
   conversation_id   String
-  
-  // bot_id            String
   llm_response      String
   user_message      String
-  //context_docs
-  //current_page    String?    // Optional field - Add it in future
   user_message_time DateTime
-  llm_response_time DateTime   
-  tokens_input    Int           @default(0)
-  tokens_output        Int           @default(0)
-
-  llm_prompt        String?       @db.Text
-  // created_at        DateTime      @default(now())
+  llm_response_time DateTime
+  tokens_input      Int           @default(0)
+  tokens_output     Int           @default(0)
+  llm_prompt        String?
   conversations     conversations @relation(fields: [conversation_id], references: [conversation_id])
-  //bot               bots          @relation(fields: [bot_id], references: [bot_id])
-  //bots              bots?         @relation(fields: [botsBot_id], references: [bot_id])
 }
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 
 model langchain_pg_embedding {
   collection_id           String?                  @db.Uuid
@@ -158,4 +146,24 @@ model langchain_pg_collection {
   langchain_pg_embedding langchain_pg_embedding[]
 
   @@ignore
+}
+
+model live_chat_conversations {
+  conversation_id    String               @id
+  session_id         String
+  bot_id             String
+  is_active          Boolean              @default(true)
+  started_at         DateTime             @default(now())
+  ended_at           DateTime?
+  bots               bots                 @relation(fields: [bot_id], references: [bot_id])
+  live_chat_messages live_chat_messages[]
+}
+
+model live_chat_messages {
+  message_id              String                  @id
+  conversation_id         String
+  sender                  String
+  message                 String
+  sent_at                 DateTime                @default(now())
+  live_chat_conversations live_chat_conversations @relation(fields: [conversation_id], references: [conversation_id])
 }
