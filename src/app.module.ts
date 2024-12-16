@@ -21,6 +21,7 @@ import { S3Module } from './infrastructure/s3/s3.module';
 import { HealthModule } from './health/health.module';
 import { ChatbotAssetModule } from './infrastructure/chatbotAsset/chatbotAsset.module';
 import { AppLoggerMiddleware } from './logger.middleware';
+import { LiveModule } from './v1/live/live.module';
 import { FormsModule } from './v1/froms/froms.module';
 
 @Module({
@@ -45,6 +46,7 @@ import { FormsModule } from './v1/froms/froms.module';
     SeedModule,
     S3Module,
     ChatbotAssetModule,
+    LiveModule,
     HealthModule
   ],
   controllers: [AppController],
