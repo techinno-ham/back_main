@@ -665,7 +665,6 @@ export class MyBotsController {
       }
     
       const conversations = await this.mybotsServices.getConversationsBySessionId(botId, sessionId);
-      console.log(conversations);
   
       if (!conversations || conversations.length === 0) {
         this.logger.warn(`No conversations found for bot ID: ${botId}, session ID: ${sessionId}`);

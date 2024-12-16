@@ -51,7 +51,7 @@ export class LiveConversationsHistoryRequestDto {
   botId: string;
 
   @IsUUID()
-  sessionId: string;
+  conversationId: string;
 }
 
 export class LiveConversationsHistoryResponseDto {
@@ -59,12 +59,13 @@ export class LiveConversationsHistoryResponseDto {
   botId: string;
 
   @IsUUID()
-  sessionId: string;
+  conversationId: string;
 
   messages: {
+    id: string;
     sender: string;
-    message: string;
-    sentAt: string;
+    body: string;
+    time: string;
   }[];
 
   constructor(partial: Partial<LiveConversationsHistoryResponseDto>) {
@@ -77,7 +78,8 @@ export class BotConversationsRequestDto {
   botId: string;
 
   @IsUUID()
-  sessionId: string;
+  @IsOptional()
+  sessionId?: string;
 }
 
 export class BotConversationsResponseDto {

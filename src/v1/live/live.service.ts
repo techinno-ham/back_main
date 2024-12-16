@@ -125,7 +125,7 @@ export class LiveService {
   ): Promise<LiveConversationsHistoryResponseDto> {
     try {
       const conversation =
-        await this.prismaService.live_chat_conversations.findFirst({
+        await this.prismaService.live_chat_conversations.findUnique({
           where: {
             conversation_id: conversationId,
           },
@@ -143,15 +143,17 @@ export class LiveService {
       }
 
       const messages =
+        //NOTE: this code convert message to widget message schema
         conversation.live_chat_messages?.map((message) => ({
+          id: message.message_id,
           sender: message.sender,
-          message: message.message,
-          sentAt: message.sent_at.toISOString(),
+          body: message.message,
+          time: message.sent_at.toISOString(),
         })) || [];
 
       const responseDto = new LiveConversationsHistoryResponseDto({
         botId: conversation.bot_id,
-        sessionId: conversation.session_id,
+        conversationId: conversation.conversation_id,
         messages,
       });
 
@@ -165,11 +167,13 @@ export class LiveService {
   // Method for fetching bot live conversations
   async fetchBotLiveConversationsService(
     botId: string,
+    sessionId?: string,
   ): Promise<BotConversationsResponseDto> {
     try {
       const result = await this.prismaService.conversations.findMany({
         where: {
           bot_id: botId,
+          ...(sessionId && {session_id : sessionId}),
           isLiveRequested: true,
         },
         select: {

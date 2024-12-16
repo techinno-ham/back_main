@@ -58,16 +58,11 @@ export class LiveController {
   async fetchLiveConversationHistory(
     @Body() historyRequestDto: LiveConversationsHistoryRequestDto,
   ): Promise<LiveConversationsHistoryResponseDto> {
-    const { botId, sessionId } = historyRequestDto;
+    const { botId, conversationId } = historyRequestDto;
     try {
-      const result =
-        await this.liveService.fetchLiveConversationHistoryService(sessionId);
+      
+      const response = await this.liveService.fetchLiveConversationHistoryService(conversationId);
 
-      const response = new LiveConversationsHistoryResponseDto({
-        botId,
-        sessionId,
-        messages: result[0]?.live_chat_messages || [],
-      });
       return response;
     } catch (error) {
       this.logger.error('Error in fetchLiveConversationHistory:', error);
