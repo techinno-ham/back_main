@@ -104,7 +104,7 @@ model forms {
 }
 
 model contacts {
-  id          String    @id @default(uuid()) 
+  contact_id          String    @id @default(uuid()) 
   name        String    @db.VarChar(255)
   phone       String    @db.VarChar(255)
   email       String?   @db.VarChar(255)
