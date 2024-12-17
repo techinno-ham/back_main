@@ -8,8 +8,6 @@ export class CreateLiveConversationRequestDto {
   @IsString()
   botId: string;
 
-  @IsUUID()
-  sessionId: string;
 }
 
 export class CreateLiveConversationResponseDto {
