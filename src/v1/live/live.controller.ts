@@ -17,6 +17,7 @@ import {
   BotConversationsResponseDto,
 } from './dtos/live.dto';
 import { LiveService } from './live.service';
+import { ChatSessionId } from '../decorators/chatSession.decorator';
 
 @Controller({
   path: 'live',
@@ -30,9 +31,9 @@ export class LiveController {
   @Post('/request-chat')
   async requestLiveConversation(
     @Body() createLiveConversationRequestDto: CreateLiveConversationRequestDto,
+    @ChatSessionId() sessionId: string,
   ): Promise<CreateLiveConversationResponseDto> {
-    const { conversationId, botId, sessionId } =
-      createLiveConversationRequestDto;
+    const { conversationId, botId } = createLiveConversationRequestDto;
     try {
       await this.liveService.requestLiveConversationService(
         conversationId,
@@ -60,8 +61,10 @@ export class LiveController {
   ): Promise<LiveConversationsHistoryResponseDto> {
     const { botId, conversationId } = historyRequestDto;
     try {
-      
-      const response = await this.liveService.fetchLiveConversationHistoryService(conversationId);
+      const response =
+        await this.liveService.fetchLiveConversationHistoryService(
+          conversationId,
+        );
 
       return response;
     } catch (error) {
@@ -123,6 +126,33 @@ export class LiveController {
     try {
       const result =
         await this.liveService.fetchBotLiveConversationsService(botId);
+
+      return result;
+    } catch (error) {
+      this.logger.error('Error in fetchBotLiveConversations:', error);
+      throw new HttpException(
+        'Failed to fetch live conversations for bot',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('/conversation-ids/widget')
+  async fetchBotLiveConversationsForWidget(
+    @Body() botConversationsRequestDto: BotConversationsRequestDto,
+    @ChatSessionId() sessionId: string,
+  ): Promise<BotConversationsResponseDto> {
+    if (!sessionId)
+      throw new HttpException(
+        'No conversation data for this session',
+        HttpStatus.NOT_FOUND,
+      );
+    const { botId } = botConversationsRequestDto;
+    try {
+      const result = await this.liveService.fetchBotLiveConversationsService(
+        botId,
+        sessionId,
+      );
 
       return result;
     } catch (error) {

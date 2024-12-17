@@ -33,7 +33,7 @@ export class LiveService {
         this.prismaService.live_chat_conversations.create({
           data: {
             conversation_id: conversationId,
-            session_id: sessionId || "abc",
+            session_id: sessionId,
             bot: {
               connect: {
                 bot_id: botId,
