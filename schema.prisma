@@ -68,6 +68,7 @@ model bots {
   conversations           conversations[]
   live_chat_conversations live_chat_conversations[]
   forms                   forms[]
+  contacts                contacts[]
   //records          records[]
 }
 
@@ -99,6 +100,21 @@ model forms {
   showIf_message        Boolean  @default(true)  
   showIf_message_number Int      @default(5)  
   bot           bots     @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade)
+  contacts      contacts[] 
+}
+
+model contacts {
+  id          String    @id @default(uuid()) 
+  name        String    @db.VarChar(255)
+  phone       String    @db.VarChar(255)
+  email       String?   @db.VarChar(255)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  bot_id      String
+  form_id     String
+
+  bot         bots      @relation(fields: [bot_id], references: [bot_id], onDelete: Cascade)
+  form        forms     @relation(fields: [form_id], references: [forms_id], onDelete: Cascade)
 }
 
 model conversations {

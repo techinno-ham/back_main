@@ -20,6 +20,27 @@ export class FormsController {
     return this.formsService.createInitForm(createFormDto);
   };
 
+  @Patch('/update/:form_id')
+  @UseGuards(JwtAuthGuard)
+  async updateForm(
+    @Param('form_id') formId: string,
+    @Body() updateData: any,
+    @User() user: any
+  ){
+    try {
+      const updatedForm = await this.formsService.updateForm(formId, updateData, user.user_id);
+  
+      if (!updatedForm) {
+        throw new HttpException('Form not found or not authorized', HttpStatus.NOT_FOUND);
+      }
+  
+      return updatedForm;
+    } catch (error) {
+      console.error('Error updating form:', error);
+      throw new HttpException('Failed to update the form. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Delete('/delete/:form_id')
   @UseGuards(JwtAuthGuard)
   async deleteForm(@Param('form_id') formId: string, @User() user: any){

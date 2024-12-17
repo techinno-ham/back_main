@@ -185,6 +185,40 @@ export class FormsService {
           console.error('Error fetching form by ID:', error);
           throw error;
         }
+      };
+
+
+      async updateForm(formId: string, data: any, userId: string): Promise<any> {
+        try {
+          const form = await this.prismaService.forms.findFirst({
+            where: {
+              forms_id: formId,
+              bot: { user_id: userId }, 
+            },
+          });
+      
+          if (!form) {
+            return null; 
+          }
+      
+          const updatedFields: any = {};
+      
+          if (data.forms_name !== undefined) updatedFields.forms_name = data.forms_name;
+          if (data.showIf_human !== undefined) updatedFields.showIf_human = data.showIf_human;
+          if (data.showIf_message !== undefined) updatedFields.showIf_message = data.showIf_message;
+          if (data.showIf_message_number !== undefined) updatedFields.showIf_message_number = data.showIf_message_number;
+          if (data.configs !== undefined) updatedFields.configs = data.configs;
+      
+          const updatedForm = await this.prismaService.forms.update({
+            where: { forms_id: formId },
+            data: updatedFields,
+          });
+      
+          return updatedForm;
+        } catch (error) {
+          console.error('Error updating form:', error);
+          throw error;
+        }
       }
 
   
