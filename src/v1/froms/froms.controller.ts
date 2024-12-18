@@ -1,8 +1,8 @@
-import { Controller, Post, Body, UseGuards, Delete, Param, HttpException, HttpStatus, Patch, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Delete, Param, HttpException, HttpStatus, Patch, Get, Query } from '@nestjs/common';
 import { FormsService } from './froms.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { User } from '../decorators/user.decorator';
-import { CreatedInitFormDto } from './dtos/forms.dto';
+import { CreatedContactDto, CreatedInitFormDto } from './dtos/forms.dto';
 
 @Controller({
     path: 'forms',
@@ -126,11 +126,108 @@ export class FormsController {
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  };
+
+  @Post('/contact')
+  async createContact(
+    @Body() contactData: CreatedContactDto,
+  ) {
+    try {
+      const newContact = await this.formsService.createContact(contactData);
+      return { message: 'Contact created successfully', data: newContact };
+    } catch (error) {
+      console.error('Error creating contact:', error);
+      throw new HttpException('Failed to create contact. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  };
+
+@Get('/contacts/:bot_id')
+@UseGuards(JwtAuthGuard)
+async getContactsByBotId(
+  @Param('bot_id') botId: string,
+  @User() user: any,
+  @Query('page') page: number = 1,
+  @Query('limit') limit: number = 10,
+  @Query('name') name?: string,
+  @Query('email') email?: string,
+
+) {
+  try {
+    const { contacts, total } = await this.formsService.getContactsByBotIdWithPagination(
+      botId,
+      user.user_id,
+      page,
+      limit,
+      { name, email }
+    );
+
+    return { data: contacts, total, page, limit };
+  } catch (error) {
+    console.error('Error fetching contacts by bot ID with pagination and search:', error);
+    throw new HttpException('Failed to fetch contacts. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
   }
+};
+
+@Delete('/contacts/:contact_id')
+@UseGuards(JwtAuthGuard)
+async deleteContact(
+  @Param('contact_id') contactId: string,
+  @User() user: any
+) {
+  try {
+    const result = await this.formsService.deleteContact(contactId, user.user_id);
+    if (result) {
+      return { message: 'Contact deleted successfully' };
+    } else {
+      throw new HttpException('Contact not found or not authorized', HttpStatus.NOT_FOUND);
+    }
+  } catch (error) {
+    console.error('Error deleting contact:', error);
+    throw new HttpException('Failed to delete contact. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+};
 
 
-
-
-
-
+@Patch('/contacts/:contact_id')
+@UseGuards(JwtAuthGuard)
+async updateContact(
+  @Param('contact_id') contactId: string,
+  @Body() updateData: { name?: string; phone?: string; email?: string }, // You can add more fields as necessary
+  @User() user: any
+) {
+  try {
+    const updatedContact = await this.formsService.updateContact(contactId, updateData, user.user_id);
+    
+    if (updatedContact) {
+      return { message: 'Contact updated successfully', data: updatedContact };
+    } else {
+      throw new HttpException('Contact not found or not authorized', HttpStatus.NOT_FOUND);
+    }
+  } catch (error) {
+    console.error('Error updating contact:', error);
+    throw new HttpException('Failed to update contact. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 }
+
+
+
+@Get('/contacts/form/:form_id')
+@UseGuards(JwtAuthGuard)
+async getContactsByFormId(
+  @Param('form_id') formId: string,
+  @Query('page') page: number = 1,  
+  @Query('limit') limit: number = 10,  
+  @User() user: any
+) {
+  try {
+    const contacts = await this.formsService.getContactsByFormIdWithPagination(formId, user.user_id, page, limit);
+    return { data: contacts };
+  } catch (error) {
+    console.error('Error fetching contacts by form ID with pagination:', error);
+    throw new HttpException('Failed to fetch contacts. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
+
+
+};

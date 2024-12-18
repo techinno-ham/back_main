@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 
@@ -218,6 +218,191 @@ export class FormsService {
         } catch (error) {
           console.error('Error updating form:', error);
           throw error;
+        }
+      };
+      async createContact(
+        contactData: { name?: string; phone?: string; email?: string; form_id: string }
+      ): Promise<any> {
+        try {
+          const form = await this.prismaService.forms.findFirst({
+            where: {
+              forms_id: contactData.form_id,
+            },
+          });
+      
+          if (!form) {
+            throw new HttpException('Form not found or not authorized', HttpStatus.NOT_FOUND);
+          }
+      
+          const newContact = await this.prismaService.contacts.create({
+            data: {
+              name: contactData.name ?? null,
+              phone: contactData.phone ?? null,
+              email: contactData.email ?? null,
+              form_id: contactData.form_id,
+              bot_id: form.bot_id,
+            },
+          });
+      
+          return newContact;
+        } catch (error) {
+          console.error('Error creating contact:', error);
+          throw new Error('Failed to create contact');
+        }
+      };
+
+      async getContactsByBotIdWithPagination(
+        botId: string,
+        userId: string,
+        page: number,
+        limit: number,
+        filters: { name?: string; email?: string }
+      ): Promise<{ contacts: any[]; total: number }> {
+        try {
+          const bot = await this.prismaService.bots.findFirst({
+            where: { bot_id: botId, user_id: userId },
+          });
+      
+          if (!bot) {
+            throw new HttpException('Bot not found or not authorized', HttpStatus.NOT_FOUND);
+          }
+      
+          const where: any = { bot_id: botId };
+          if (filters.name) {
+            where.name = { contains: filters.name, mode: 'insensitive' }; 
+          }
+          if (filters.email) {
+            where.email = { contains: filters.email, mode: 'insensitive' };
+          }
+      
+          const total = await this.prismaService.contacts.count({
+            where,
+          });
+      
+          // Fetch paginated results
+          const contacts = await this.prismaService.contacts.findMany({
+            where,
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { created_at: 'desc' }, 
+          });
+      
+          return { contacts, total };
+        } catch (error) {
+          console.error('Error fetching paginated contacts:', error);
+          throw error;
+        }
+      };
+
+      async getContactsByFormIdWithPagination(
+        formId: string,
+        userId: string,
+        page: number,
+        limit: number
+      ): Promise<any> {
+        try {
+          // Validate the form belongs to the user
+          const form = await this.prismaService.forms.findFirst({
+            where: { forms_id: formId, bot: { user_id: userId } },
+            include: { bot: true },
+          });
+      
+          if (!form) {
+            throw new HttpException('Form not found or not authorized', HttpStatus.NOT_FOUND);
+          }
+      
+          // Calculate skip and take based on the page and limit
+          const skip = (page - 1) * limit;
+          const take = limit;
+      
+          // Fetch contacts for the form with pagination
+          const contacts = await this.prismaService.contacts.findMany({
+            where: { form_id: formId },
+            skip: skip,
+            take: take,
+            orderBy: { created_at: 'desc' }, // Optional: Order contacts by most recent
+          });
+      
+          // Get the total number of contacts for pagination info
+          const totalContacts = await this.prismaService.contacts.count({
+            where: { form_id: formId },
+          });
+      
+          // Return contacts along with pagination info
+          return {
+            data: contacts,
+            pagination: {
+              currentPage: page,
+              totalPages: Math.ceil(totalContacts / limit),
+              totalContacts: totalContacts,
+              limit: limit,
+            },
+          };
+        } catch (error) {
+          console.error('Error fetching contacts by form ID with pagination:', error);
+          throw error;
+        }
+      };
+
+      async deleteContact(contactId: string, userId: string): Promise<boolean> {
+        try {
+          // Check if the contact belongs to the form associated with the user
+          const contact = await this.prismaService.contacts.findFirst({
+            where: {
+              contact_id: contactId,
+              form: {
+                bot: {
+                  user_id: userId, // Ensure the bot is associated with the user
+                },
+              },
+            },
+          });
+      
+          if (!contact) {
+            return false; // Contact not found or user does not have permission
+          }
+      
+          // Delete the contact
+          await this.prismaService.contacts.delete({
+            where: { contact_id: contactId },
+          });
+      
+          return true;
+        } catch (error) {
+          console.error('Error deleting contact:', error);
+          throw new HttpException('Failed to delete contact. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+      };
+
+
+      async updateContact(contactId: string, updateData: { name?: string; phone?: string; email?: string }, userId: string): Promise<any> {
+        try {
+          // Find the contact and ensure it belongs to the form associated with the user
+          const contact = await this.prismaService.contacts.findFirst({
+            where: {
+              contact_id: contactId,
+              form: {
+                bot: {
+                  user_id: userId, // Ensure the bot is associated with the user
+                },
+              },
+            },
+          });
+      
+          if (!contact) {
+            return null; // Contact not found or user does not have permission
+          }
+      
+          // Update the contact with the provided data
+          const updatedContact = await this.prismaService.contacts.update({
+            where: { contact_id: contactId },
+            data: updateData,
+          });
+      
+          return updatedContact;
+        } catch (error) {
+          console.error('Error updating contact:', error);
+          throw new HttpException('Failed to update contact. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
         }
       }
 
