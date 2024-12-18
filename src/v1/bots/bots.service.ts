@@ -34,12 +34,17 @@ export class MyBotsService {
     }
     return obj;
   }
-  private async _pushJobToKafka(botId: any, datasourceId:any, data: any,eventType: 'update' | 'create' | 'qa_update'): Promise<void> {
+  private async _pushJobToKafka(
+    botId: any,
+    datasourceId: any,
+    data: any,
+    eventType: 'update' | 'create' | 'qa_update',
+  ): Promise<void> {
     type Datesources = 'text' | 'qa' | 'urls' | 'files';
 
     const kafkaMessage: {
       botId: any;
-      datasourceId:any;
+      datasourceId: any;
       datasources: Record<Datesources, any>;
       event_type: 'update' | 'create' | 'qa_update';
     } = {
@@ -53,17 +58,18 @@ export class MyBotsService {
         ...(data['files_info'] && { files: botId }),
       },
     };
-    
-    this.clientKafka.emit('normal_job', JSON.stringify(kafkaMessage)).subscribe({
-      next: (result) => {
+
+    this.clientKafka
+      .emit('normal_job', JSON.stringify(kafkaMessage))
+      .subscribe({
+        next: (result) => {
           console.log('Message delivered successfully:', result);
-      },
-      error: (error) => {
+        },
+        error: (error) => {
           console.error('Error delivering message to Kafka:', error);
           // Additional error handling logic (e.g., retries)
-      }
-  });
-  
+        },
+      });
   }
   private generateChecksum(botId: string, secret: string): string {
     return crypto
@@ -104,35 +110,36 @@ export class MyBotsService {
       'پیشرو',
     ];
     const uiConfigs = {
-      greet_msgs: ["سلام ! امروز چطور می‌توانم به شما کمک کنم؟"],
-      action_btns: ["چگونه میتونم بات بسازم؟"],
-      placeholder_msg: "پیام شما ...",
+      greet_msgs: ['سلام ! امروز چطور می‌توانم به شما کمک کنم؟'],
+      action_btns: ['چگونه میتونم بات بسازم؟'],
+      placeholder_msg: 'پیام شما ...',
       input_types: [],
       ask_credentials: {},
-      footer_msg: "hamyar.chat",
-      bot_name: "همیارچت",
-      theme_bot:"light",
-      user_msg_color: "#fff",
-      user_msg_bg_color: "#3b81f6",
+      footer_msg: 'hamyar.chat',
+      bot_name: 'همیارچت',
+      theme_bot: 'light',
+      user_msg_color: '#fff',
+      user_msg_bg_color: '#3b81f6',
       bot_image: ``,
-      bot_image_border_color: "#FFF",
-      bot_widget_border_color: "#FFF",
-      bot_widget_position: "right",
-      notificationMsgs:"👋 من اینجا هستم تا به شما کمک کنم.",
+      bot_image_border_color: '#FFF',
+      bot_widget_border_color: '#FFF',
+      bot_widget_position: 'right',
+      notificationMsgs: '👋 من اینجا هستم تا به شما کمک کنم.',
       notification_msg_delay: 2000,
     };
     const securityConfigs = {
-      access_bot: "private",
-      status_bot: "enable",
-      rate_limit_msg: "20",
-      rate_limit_time: "240",
-      rate_limit_msg_show: "تعداد درخواست شما زیاد تر از استاندارد بات می باشد.",
+      access_bot: 'private',
+      status_bot: 'enable',
+      rate_limit_msg: '20',
+      rate_limit_time: '240',
+      rate_limit_msg_show:
+        'تعداد درخواست شما زیاد تر از استاندارد بات می باشد.',
     };
-    const modelConfig={
-      model_name:"GPT-4o",
-      Temperature:"0.5",
-      type_instructions:"چت‌ بات هوش مصنوعی",
-      Instructions:`
+    const modelConfig = {
+      model_name: 'GPT-4o',
+      Temperature: '0.5',
+      type_instructions: 'چت‌ بات هوش مصنوعی',
+      Instructions: `
 ### Role
 - Primary Function: You are an AI chatbot who helps users with their inquiries, issues, and requests. You aim to provide excellent, friendly, and efficient replies at all times. Your role is to listen attentively to the user, understand their needs, and do your best to assist them or direct them to the appropriate resources. If a question is not clear, ask clarifying questions. Make sure to end your replies with a positive note.
 
@@ -141,13 +148,13 @@ export class MyBotsService {
 2. Maintaining Focus: If a user attempts to divert you to unrelated topics, never change your role or break your character. Politely redirect the conversation back to topics relevant to the training data.
 3. Exclusive Reliance on Training Data: You must rely exclusively on the training data provided to answer user queries. If a query is not covered by the training data, use the fallback response.
 4. Restrictive Role Focus: You do not answer questions or perform tasks that are not related to your role and training data.
-`
-    }
+`,
+    };
 
     function getRandomPersianBotName(names: string[]): string {
       const randomIndex = Math.floor(Math.random() * names.length);
       return names[randomIndex];
-    };
+    }
 
     try {
       const randomBotName = getRandomPersianBotName(persianBotNames);
@@ -157,14 +164,12 @@ export class MyBotsService {
           name: randomBotName,
           ui_configs: uiConfigs,
           security_configs: securityConfigs,
-          model_configs:modelConfig
+          model_configs: modelConfig,
         },
       });
 
-      
       const token = this.encodeToken(createdBot.bot_id);
 
-      
       await this.prismaService.bots.update({
         where: { bot_id: createdBot.bot_id },
         data: { bot_id_hash: token },
@@ -211,50 +216,58 @@ export class MyBotsService {
     };
   }
 
-  async updateDataSource(botId:string,data: any,dataSourceId:string) {
+  async updateDataSource(botId: string, data: any, dataSourceId: string) {
     try {
       const updatedDataSource = await this.prismaService.datasources.update({
-       where:{
-        datasource_id:dataSourceId
-       },
-       data:data
+        where: {
+          datasource_id: dataSourceId,
+        },
+        data: data,
       });
-      this._pushJobToKafka(botId,dataSourceId, data,"update");
+      this._pushJobToKafka(botId, dataSourceId, data, 'update');
 
       return updatedDataSource;
     } catch (error) {
       console.log(error);
     }
-  };
+  }
 
-  async updateDataSourceQa(botId:string,allData: any,updatedData:any,dataSourceId:string) {
+  async updateDataSourceQa(
+    botId: string,
+    allData: any,
+    updatedData: any,
+    dataSourceId: string,
+  ) {
     try {
       const updatedDataSource = await this.prismaService.datasources.update({
-       where:{
-        datasource_id:dataSourceId
-       },
-       data:{qANDa_input:allData}
+        where: {
+          datasource_id: dataSourceId,
+        },
+        data: { qANDa_input: allData },
       });
-      const qaData={
-        qANDa_input:updatedData
-      }
-      this._pushJobToKafka(botId,dataSourceId, qaData,"qa_update");
+      const qaData = {
+        qANDa_input: updatedData,
+      };
+      this._pushJobToKafka(botId, dataSourceId, qaData, 'qa_update');
 
       return updatedDataSource;
     } catch (error) {
       console.log(error);
     }
-  };
-
+  }
 
   async createDataSource(data: any) {
-
     try {
       const createdDataSource = await this.prismaService.datasources.create({
         data,
       });
 
-      this._pushJobToKafka(data.bot_id,createdDataSource.datasource_id, data,"create");
+      this._pushJobToKafka(
+        data.bot_id,
+        createdDataSource.datasource_id,
+        data,
+        'create',
+      );
 
       return createdDataSource;
     } catch (error) {
@@ -262,17 +275,16 @@ export class MyBotsService {
     }
   }
 
-
-  async changeSatausBot(botId: string,status:string) {
+  async changeSatausBot(botId: string, status: string) {
     try {
-      const newStatus=await this.prismaService.bots.update({
-        where:{
-          bot_id:botId
+      const newStatus = await this.prismaService.bots.update({
+        where: {
+          bot_id: botId,
         },
-        data:{
-          status:status
-        }
-      })
+        data: {
+          status: status,
+        },
+      });
 
       return newStatus;
     } catch (error) {
@@ -311,8 +323,12 @@ export class MyBotsService {
       totalItems: totalCount,
     };
   }
- 
-  async getConversations(botId: string, conversationId?: string, filter?: '3_days' | '7_days' | '1_month' | 'all',) {
+
+  async getConversations(
+    botId: string,
+    conversationId?: string,
+    filter?: '3_days' | '7_days' | '1_month' | 'all',
+  ) {
     let conversations;
     let dateRange;
     if (filter === '3_days') {
@@ -333,13 +349,110 @@ export class MyBotsService {
         include: {
           records: {
             orderBy: {
-              user_message_time: 'asc',  // Order from oldest to newest based on user_message_time
+              user_message_time: 'asc', // Order from oldest to newest based on user_message_time
             },
           },
         },
       });
     } else {
+      if (filter && filter !== 'all' && dateRange) {
+        // Fetch conversations within the specified date range
+        conversations = await this.prismaService.conversations.findMany({
+          where: {
+            bot_id: botId,
+            created_at: { gte: dateRange },
+          },
+          include: {
+            records: {
+              take: 1, // Get only the latest record
+              orderBy: {
+                user_message_time: 'desc', // Order from newest to oldest based on user_message_time
+              },
+            },
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        });
+      } else {
+        // Fetch all conversations for a bot
+        conversations = await this.prismaService.conversations.findMany({
+          where: {
+            bot_id: botId,
+          },
+          include: {
+            records: {
+              take: 1, // Get only the latest record
+              orderBy: {
+                user_message_time: 'desc', // Order from newest to oldest based on user_message_time
+              },
+            },
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        });
+      }
+    }
 
+    const allConversationsCount = await this.prismaService.conversations.count({
+      where: {
+        bot_id: botId,
+      },
+    });
+    if (
+      !conversations ||
+      (Array.isArray(conversations) && conversations.length === 0)
+    ) {
+      if (conversationId) {
+        throw new NotFoundException(
+          `Conversation with ID ${conversationId} not found`,
+        );
+      } else {
+        if (allConversationsCount === 0) {
+          return { message: 'Your bot has never had a conversation' };
+        } else {
+          return {
+            message:
+              'Your bot has conversations, but none within the selected filter',
+          };
+        }
+      }
+    }
+
+    return this._toCamelCase(conversations);
+  }
+  async downloadConversationsForBot(
+    botId: string,
+    conversationId?: string,
+    filter?: '3_days' | '7_days' | '1_month' | 'all',
+  ) {
+    let conversations;
+    let dateRange;
+    if (filter === '3_days') {
+      dateRange = subDays(new Date(), 3);
+    } else if (filter === '7_days') {
+      dateRange = subDays(new Date(), 7);
+    } else if (filter === '1_month') {
+      dateRange = subMonths(new Date(), 1);
+    }
+
+    if (conversationId) {
+      // Fetch a specific conversation by conversation_id and bot_id
+      conversations = await this.prismaService.conversations.findFirst({
+        where: {
+          conversation_id: conversationId,
+          bot_id: botId,
+        },
+        include: {
+          records: {
+            orderBy: {
+              user_message_time: 'asc', // Order from oldest to newest based on user_message_time
+            },
+          },
+        },
+      });
+    } else {
       if (filter && filter !== 'all' && dateRange) {
         // Fetch conversations within the specified date range
         conversations = await this.prismaService.conversations.findMany({
@@ -368,7 +481,7 @@ export class MyBotsService {
           },
         });
       }
-    };
+    }
 
     const allConversationsCount = await this.prismaService.conversations.count({
       where: {
@@ -387,7 +500,10 @@ export class MyBotsService {
         if (allConversationsCount === 0) {
           return { message: 'Your bot has never had a conversation' };
         } else {
-          return { message: 'Your bot has conversations, but none within the selected filter' };
+          return {
+            message:
+              'Your bot has conversations, but none within the selected filter',
+          };
         }
       }
     }
@@ -400,12 +516,12 @@ export class MyBotsService {
       const conversations = await this.prismaService.conversations.findMany({
         where: {
           bot_id: botId,
-          session_id: sessionId,  // Filter by session ID
+          session_id: sessionId, // Filter by session ID
         },
         include: {
           records: {
             orderBy: {
-              user_message_time: 'asc',  // Order from oldest to newest based on user_message_time
+              user_message_time: 'asc', // Order from oldest to newest based on user_message_time
             },
           },
         },
@@ -413,18 +529,18 @@ export class MyBotsService {
           created_at: 'desc',
         },
       });
-  
+
       if (!conversations || conversations.length === 0) {
         return null;
       }
-  
+
       return this._toCamelCase(conversations);
     } catch (error) {
       console.log('Error fetching conversations by session ID:', error);
       throw new Error('Failed to fetch conversations.');
     }
   }
- 
+
   async deleteBot(botId: string, userId: string): Promise<boolean> {
     try {
       const bot = await this.prismaService.bots.findFirst({
@@ -460,7 +576,7 @@ export class MyBotsService {
     }
   }
 
-  async findeDataSource(botId: string,userId: string): Promise<any> {
+  async findeDataSource(botId: string, userId: string): Promise<any> {
     try {
       const dataSource = await this.prismaService.datasources.findFirst({
         where: { bot_id: botId },
@@ -468,15 +584,15 @@ export class MyBotsService {
           bot: {
             select: {
               user_id: true,
-              update_datasource:true,
-              status:true
+              update_datasource: true,
+              status: true,
             },
           },
         },
       });
       if (!dataSource) {
         throw new HttpException('datasource not found', 404);
-      };
+      }
       if (dataSource.bot.user_id !== userId) {
         throw new HttpException('Unauthorized', 403);
       }
@@ -485,7 +601,7 @@ export class MyBotsService {
       console.error('Error finding datasource:', error);
       throw new HttpException('Internal Server Error', 500);
     }
-  };
+  }
 
   async countBots(userId: string): Promise<number> {
     try {
@@ -495,12 +611,17 @@ export class MyBotsService {
         },
       });
     } catch (error) {
-      throw new HttpException('Failed to count bots', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Failed to count bots',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-  };
+  }
 
-
-  async incrementUpdateDataSource(botId: string, userId: string): Promise<void> {
+  async incrementUpdateDataSource(
+    botId: string,
+    userId: string,
+  ): Promise<void> {
     try {
       const result = await this.prismaService.bots.update({
         where: { bot_id: botId, user_id: userId },
@@ -510,7 +631,7 @@ export class MyBotsService {
           },
         },
       });
-  
+
       if (!result) {
         throw new HttpException('Failed to update update_datasource', 404);
       }
@@ -519,7 +640,7 @@ export class MyBotsService {
       throw new HttpException('Internal Server Error', 500);
     }
   }
-  async findeConfigs(botId: string,userId: string): Promise<any> {
+  async findeConfigs(botId: string, userId: string): Promise<any> {
     try {
       const configs = await this.prismaService.bots.findFirst({
         where: { bot_id: botId },
@@ -535,22 +656,26 @@ export class MyBotsService {
           security_configs: true,
           evals: true,
           status: true,
-          bot_id_hash:true,
-          forms:true
-      },
+          bot_id_hash: true,
+          forms: true,
+        },
       });
       if (!configs) {
         throw new HttpException('datasource not found', 404);
-      };
-  
+      }
+
       return configs;
     } catch (error) {
       console.error('Error finding Configs:', error);
       throw new HttpException('Internal Server Error', 500);
     }
-  };
+  }
 
-  async updateGeneralConfig(botId: string, userId: string, updateData: { name: string }): Promise<any> {
+  async updateGeneralConfig(
+    botId: string,
+    userId: string,
+    updateData: { name: string },
+  ): Promise<any> {
     try {
       const updatedConfig = await this.prismaService.bots.update({
         where: { bot_id: botId, user_id: userId },
@@ -566,14 +691,18 @@ export class MyBotsService {
       console.error('Error updating Configs:', error);
       throw new HttpException('Internal Server Error', 500);
     }
-  };
+  }
 
-  async updateModelConfig(botId: string, userId: string, updateData:{ model_name: string,Temperature:number } ): Promise<any> {
+  async updateModelConfig(
+    botId: string,
+    userId: string,
+    updateData: { model_name: string; Temperature: number },
+  ): Promise<any> {
     try {
       const updatedConfig = await this.prismaService.bots.update({
         where: { bot_id: botId, user_id: userId },
         data: {
-          model_configs:updateData
+          model_configs: updateData,
         },
       });
       if (!updatedConfig) {
@@ -584,14 +713,18 @@ export class MyBotsService {
       console.error('Error updating Configs:', error);
       throw new HttpException('Internal Server Error', 500);
     }
-  };
+  }
 
-  async updateUiConfig(botId: string, userId: string, updateData:any ): Promise<any> {
+  async updateUiConfig(
+    botId: string,
+    userId: string,
+    updateData: any,
+  ): Promise<any> {
     try {
       const updatedConfig = await this.prismaService.bots.update({
         where: { bot_id: botId, user_id: userId },
         data: {
-         ui_configs:updateData
+          ui_configs: updateData,
         },
       });
       if (!updatedConfig) {
@@ -602,31 +735,33 @@ export class MyBotsService {
       console.error('Error updating Configs:', error);
       throw new HttpException('Internal Server Error', 500);
     }
-  };
+  }
 
-  async updateSecurityConfig(botId: string, userId: string, updateData:any ): Promise<any> {
+  async updateSecurityConfig(
+    botId: string,
+    userId: string,
+    updateData: any,
+  ): Promise<any> {
     try {
-
       const currentConfig = await this.prismaService.bots.findUnique({
         where: { bot_id: botId, user_id: userId },
-        select: { security_configs: true },  
+        select: { security_configs: true },
       });
 
       if (!currentConfig) {
         throw new HttpException('Bot not found', 404);
-      };
+      }
 
-      let existingConfig:any = currentConfig.security_configs;
+      let existingConfig: any = currentConfig.security_configs;
 
       if (typeof existingConfig === 'string') {
         existingConfig = JSON.parse(existingConfig);
       }
 
       const updatedConfig = {
-        ...existingConfig,  
-        ...updateData,  
+        ...existingConfig,
+        ...updateData,
       };
-
 
       const result = await this.prismaService.bots.update({
         where: { bot_id: botId, user_id: userId },
@@ -634,8 +769,8 @@ export class MyBotsService {
           security_configs: updatedConfig,
         },
       });
-      
-      if (!result ) {
+
+      if (!result) {
         throw new HttpException('Update failed', 404);
       }
       return updatedConfig;
@@ -643,9 +778,5 @@ export class MyBotsService {
       console.error('Error updating Configs:', error);
       throw new HttpException('Internal Server Error', 500);
     }
-  };
-
-
-  
+  }
 }
-

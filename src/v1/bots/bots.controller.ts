@@ -648,6 +648,29 @@ export class MyBotsController {
     }
   }
 
+  @Get(':botId/conversations/download')
+  async getDownloadBotConversations(
+    @Param('botId') botId: string,
+  ) {
+    this.logger.log(`Downloading conversations for bot ID: ${botId} `);
+
+    try {
+      const conversations = await this.mybotsServices.downloadConversationsForBot(botId);
+
+      if (!conversations || conversations.length === 0) {
+        this.logger.warn(`No conversations found for bot ID: ${botId}`);
+        throw new HttpException('No conversations found', HttpStatus.NOT_FOUND);
+      }
+
+      this.logger.log(`Successfully retrieved ${conversations.length} conversations for bot ID: ${botId}`);
+      return conversations;
+
+    } catch (error) {
+      this.logger.error(`Error retrieving conversations for bot ID: ${botId}`, error.stack);
+      throw new HttpException('Failed to retrieve conversations. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
 
   @Get(':botId/conversations/session')
   async getConversationsBySessionId(
