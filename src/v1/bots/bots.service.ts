@@ -327,12 +327,14 @@ export class MyBotsService {
   async getConversations(
     botId: string,
     conversationId?: string,
-    filter?: '3_days' | '7_days' | '1_month' | 'all',
+    filter?: '1_days' | '3_days' | '7_days' | '1_month' | 'all',
   ) {
     let conversations;
     let dateRange;
-    if (filter === '3_days') {
-      dateRange = subDays(new Date(), 3);
+    if (filter === '1_days') {
+      dateRange = subDays(new Date(), 1);
+    } else if (filter === '3_days') {
+      dateRange = subDays(new Date(), 7);
     } else if (filter === '7_days') {
       dateRange = subDays(new Date(), 7);
     } else if (filter === '1_month') {
