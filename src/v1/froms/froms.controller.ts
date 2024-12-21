@@ -141,32 +141,30 @@ export class FormsController {
     }
   };
 
-@Get('/contacts/:bot_id')
-@UseGuards(JwtAuthGuard)
-async getContactsByBotId(
-  @Param('bot_id') botId: string,
-  @User() user: any,
-  @Query('page') page: number = 1,
-  @Query('limit') limit: number = 10,
-  @Query('name') name?: string,
-  @Query('email') email?: string,
-
-) {
-  try {
-    const { contacts, total } = await this.formsService.getContactsByBotIdWithPagination(
-      botId,
-      user.user_id,
-      page,
-      limit,
-      { name, email }
-    );
-
-    return { data: contacts, total, page, limit };
-  } catch (error) {
-    console.error('Error fetching contacts by bot ID with pagination and search:', error);
-    throw new HttpException('Failed to fetch contacts. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+  @Get('/contacts/:bot_id')
+  @UseGuards(JwtAuthGuard)
+  async getContactsByBotId(
+    @Param('bot_id') botId: string,
+    @User() user: any,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('search') search?: string, // Single search parameter
+  ) {
+    try {
+      const { contacts, total } = await this.formsService.getContactsByBotIdWithPagination(
+        botId,
+        user.user_id,
+        page,
+        limit,
+        search 
+      );
+  
+      return { data: contacts, total, page, limit };
+    } catch (error) {
+      console.error('Error fetching contacts by bot ID with pagination and search:', error);
+      throw new HttpException('Failed to fetch contacts. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
-};
 
 @Delete('/contacts/:contact_id')
 @UseGuards(JwtAuthGuard)

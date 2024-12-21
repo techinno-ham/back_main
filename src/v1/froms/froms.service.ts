@@ -256,7 +256,7 @@ export class FormsService {
         userId: string,
         page: number,
         limit: number,
-        filters: { name?: string; email?: string }
+        search?: string 
       ): Promise<{ contacts: any[]; total: number }> {
         try {
           const bot = await this.prismaService.bots.findFirst({
@@ -268,11 +268,12 @@ export class FormsService {
           }
       
           const where: any = { bot_id: botId };
-          if (filters.name) {
-            where.name = { contains: filters.name, mode: 'insensitive' }; 
-          }
-          if (filters.email) {
-            where.email = { contains: filters.email, mode: 'insensitive' };
+      
+          if (search) {
+            where.OR = [
+              { name: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+            ];
           }
       
           const total = await this.prismaService.contacts.count({
@@ -283,8 +284,8 @@ export class FormsService {
           const contacts = await this.prismaService.contacts.findMany({
             where,
             skip: (page - 1) * limit,
-            take: limit,
-            orderBy: { created_at: 'desc' }, 
+            take: +limit,
+            orderBy: { created_at: 'desc' },
           });
       
           return { contacts, total };
@@ -292,7 +293,7 @@ export class FormsService {
           console.error('Error fetching paginated contacts:', error);
           throw error;
         }
-      };
+      }
 
       async getContactsByFormIdWithPagination(
         formId: string,
