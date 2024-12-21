@@ -37,7 +37,7 @@ async function bootstrap() {
 
   // await seedService.seed();
   // //befor use version upload check this version is exist in chatbotasset
-  // await ChatbotAssetServic.uploadChatbotAsset('v1.0.0')
+  await ChatbotAssetServic.uploadChatbotAsset('v1.0.0')
 
 
   //https://stackoverflow.com/questions/66086427/docker-container-with-nodejs-appnestjs-is-not-accessible-from-both-other-conta
