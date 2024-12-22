@@ -90,7 +90,20 @@ export class WidgetService {
         model_configs: true,
         ui_configs: true,
         security_configs: true,
-        status:true
+        status:true,
+        forms: {
+          where: {
+              status: 'active', 
+          },
+          select: {
+              forms_id: true,
+              forms_name: true,
+              configs: true,
+              showIf_human: true,
+              showIf_message: true,
+              showIf_message_number: true,
+          },
+      },
       },
     });
 
