@@ -15,6 +15,8 @@ export class SocialController {
 
   @Get()
   verifyWebhook(@Req() req: Request, @Res() res: Response) {
+    console.log({req});
+    
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
@@ -30,6 +32,8 @@ export class SocialController {
 
   @Post()
   handleEvent(@Req() req: Request, @Res() res: Response) {
+    console.log({req});
+    
     const signature = req.headers['x-hub-signature-256'] as string;
     const payload = JSON.stringify(req.body);
 
