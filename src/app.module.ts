@@ -23,6 +23,7 @@ import { ChatbotAssetModule } from './infrastructure/chatbotAsset/chatbotAsset.m
 import { AppLoggerMiddleware } from './logger.middleware';
 import { LiveModule } from './v1/live/live.module';
 import { FormsModule } from './v1/froms/froms.module';
+import { SocialModule } from './v1/social/social.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { FormsModule } from './v1/froms/froms.module';
     S3Module,
     ChatbotAssetModule,
     LiveModule,
-    HealthModule
+    HealthModule,
+    SocialModule,
   ],
   controllers: [AppController],
   providers: [
