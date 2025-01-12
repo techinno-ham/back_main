@@ -1,12 +1,17 @@
 import { Controller, Get, Post, Req, Res, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as crypto from 'crypto';
+import { ConfigService } from '@nestjs/config';
+
 
 // @Controller('webhook')
 @Controller('webhooks')
 export class SocialController {
-  private readonly verifyToken = '7d19d89f70bd9d93c3294aaa1c7027ba';
-  private readonly appSecret = 'Aa6c54e6d00f3d2f739b50d9ccd52142';
+    constructor(private readonly configService: ConfigService) {}
+
+    
+  private readonly verifyToken = this.configService.get('INSTA_VERIFY_TOKEN');
+  private readonly appSecret = this.configService.get('INSTA_APP_SECRET');
 
   @Get()
   verifyWebhook(@Req() req: Request, @Res() res: Response) {

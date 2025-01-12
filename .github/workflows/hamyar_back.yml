@@ -28,6 +28,8 @@ jobs:
       S3_HOST: ${{ secrets.S3_HOST}}
       S3_USER: ${{ secrets.S3_USER}}
       S3_PASSWORD: ${{ secrets.S3_PASSWORD}}
+      INSTA_VERIFY_TOKEN: ${{ secrets.INSTA_VERIFY_TOKEN}}
+      INSTA_APP_SECRET: ${{ secrets.INSTA_APP_SECRET}}
 
 
 
@@ -91,6 +93,8 @@ jobs:
           S3_HOST=${{ secrets.S3_HOST}}
           S3_USER=${{ secrets.S3_USER}}
           S3_PASSWORD=${{ secrets.S3_PASSWORD}}
+          INSTA_VERIFY_TOKEN=${{ secrets.INSTA_VERIFY_TOKEN}}
+          INSTA_APP_SECRET=${{ secrets.INSTA_APP_SECRET}}
 
     - name: Log out from Docker Hub
       run: docker logout
