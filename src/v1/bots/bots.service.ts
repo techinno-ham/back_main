@@ -99,7 +99,7 @@ export class MyBotsService {
     };
 
     try {
-      this.clientProxy.emit('normal_job_queue', rabbitMessage);
+      this.clientProxy.emit('ham_job_queue', rabbitMessage);
       console.log('Message delivered successfully to RabbitMQ');
     } catch (error) {
       console.error('Error delivering message to RabbitMQ:', error);
