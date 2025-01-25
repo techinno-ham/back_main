@@ -30,11 +30,11 @@ jobs:
       S3_PASSWORD: ${{ secrets.S3_PASSWORD}}
       INSTA_VERIFY_TOKEN: ${{ secrets.INSTA_VERIFY_TOKEN}}
       INSTA_APP_SECRET: ${{ secrets.INSTA_APP_SECRET}}
-
-
-
-      
-
+      RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST}}
+      RABBITMQ_QUEUE: ${{ secrets.RABBITMQ_QUEUE}}
+      RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME}}
+      RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD}}
+      RABBITMQ_VHOST: ${{ secrets.RABBITMQ_VHOST}}
 
     steps:
     - name: Checkout code
@@ -95,6 +95,10 @@ jobs:
           S3_PASSWORD=${{ secrets.S3_PASSWORD}}
           INSTA_VERIFY_TOKEN=${{ secrets.INSTA_VERIFY_TOKEN}}
           INSTA_APP_SECRET=${{ secrets.INSTA_APP_SECRET}}
-
+          RABBITMQ_HOST=${{ secrets.RABBITMQ_HOST}}
+          RABBITMQ_QUEUE=${{ secrets.RABBITMQ_QUEUE}}
+          RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME}}
+          RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD}}
+          RABBITMQ_VHOST=${{ secrets.RABBITMQ_VHOST}}
     - name: Log out from Docker Hub
       run: docker logout
