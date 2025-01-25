@@ -52,20 +52,20 @@ async function bootstrap() {
   const rabbitmqPassword = configService.get('RABBITMQ_PASSWORD');
   const rabbitmqVhost = configService.get('RABBITMQ_VHOST');
 
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: [
-        `amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}/${rabbitmqVhost}`,
-      ], // Constructing the full connection URL dynamically
-      queue: "ham_job_queue",
-      queueOptions: {
-        durable: true, // Adjust to your needs
-      },
-    },
-  });
+  // app.connectMicroservice<MicroserviceOptions>({
+  //   transport: Transport.RMQ,
+  //   options: {
+  //     urls: [
+  //       `amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}/${rabbitmqVhost}`,
+  //     ], // Constructing the full connection URL dynamically
+  //     queue: "ham_job_queue",
+  //     queueOptions: {
+  //       durable: true, // Adjust to your needs
+  //     },
+  //   },
+  // });
 
-  await app.startAllMicroservices();
+  // await app.startAllMicroservices();
   
   await app.listen(12000, '0.0.0.0');
 }
