@@ -9,13 +9,15 @@ import { SeedService } from './infrastructure/seed/seed.service';
 // import './amp';
 import { ChatbotAssetService } from './infrastructure/chatbotAsset/ChatbotAsset.service';
 import * as cookieParser from 'cookie-parser';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: WinstonModule.createLogger({
-      instance: instance,
-    }),
+    // logger: WinstonModule.createLogger({
+    //   instance: instance,
+    // }),
   })
 
 
@@ -42,6 +44,29 @@ async function bootstrap() {
 
 
   //https://stackoverflow.com/questions/66086427/docker-container-with-nodejs-appnestjs-is-not-accessible-from-both-other-conta
+  
+  const configService = app.get(ConfigService);
+  const rabbitmqHost = configService.get('RABBITMQ_HOST');
+  const rabbitmqQueue = configService.get('RABBITMQ_QUEUE');
+  const rabbitmqUsername = configService.get('RABBITMQ_USERNAME');
+  const rabbitmqPassword = configService.get('RABBITMQ_PASSWORD');
+  const rabbitmqVhost = configService.get('RABBITMQ_VHOST');
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [
+        `amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}/${rabbitmqVhost}`,
+      ], // Constructing the full connection URL dynamically
+      queue: rabbitmqQueue,
+      queueOptions: {
+        durable: true, // Adjust to your needs
+      },
+    },
+  });
+
+  await app.startAllMicroservices();
+  
   await app.listen(12000, '0.0.0.0');
 }
 bootstrap();

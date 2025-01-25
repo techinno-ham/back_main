@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 //import { BotCreate } from './dtos/mybots.dto';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientKafka, ClientProxy } from '@nestjs/microservices';
 import { subDays, subMonths } from 'date-fns';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
@@ -16,7 +16,8 @@ import * as crypto from 'crypto';
 export class MyBotsService {
   constructor(
     private readonly prismaService: PrismaService,
-    @Inject('KAFKA_SERVICE') private readonly clientKafka: ClientKafka,
+    // @Inject('KAFKA_SERVICE') private readonly clientKafka: ClientKafka,
+    @Inject('RABBITMQ_SERVICE') private readonly clientProxy: ClientProxy,
     private jwtService: JwtService,
   ) {}
 
@@ -34,7 +35,45 @@ export class MyBotsService {
     }
     return obj;
   }
-  private async _pushJobToKafka(
+  // private async _pushJobToKafka(
+  //   botId: any,
+  //   datasourceId: any,
+  //   data: any,
+  //   eventType: 'update' | 'create' | 'qa_update',
+  // ): Promise<void> {
+  //   type Datesources = 'text' | 'qa' | 'urls' | 'files';
+
+  //   const kafkaMessage: {
+  //     botId: any;
+  //     datasourceId: any;
+  //     datasources: Record<Datesources, any>;
+  //     event_type: 'update' | 'create' | 'qa_update';
+  //   } = {
+  //     botId,
+  //     datasourceId,
+  //     event_type: eventType,
+  //     datasources: {
+  //       ...(data.text_input && { text: data.text_input }),
+  //       ...(data.qANDa_input && { qa: data.qANDa_input }),
+  //       ...(data.urls && { urls: data.urls }),
+  //       ...(data['files_info'] && { files: botId }),
+  //     },
+  //   };
+
+  //   this.clientKafka
+  //     .emit('normal_job', JSON.stringify(kafkaMessage))
+  //     .subscribe({
+  //       next: (result) => {
+  //         console.log('Message delivered successfully:', result);
+  //       },
+  //       error: (error) => {
+  //         console.error('Error delivering message to Kafka:', error);
+  //         // Additional error handling logic (e.g., retries)
+  //       },
+  //     });
+  // }
+
+  private async _pushJobToRabbitMQ(
     botId: any,
     datasourceId: any,
     data: any,
@@ -42,7 +81,7 @@ export class MyBotsService {
   ): Promise<void> {
     type Datesources = 'text' | 'qa' | 'urls' | 'files';
 
-    const kafkaMessage: {
+    const rabbitMessage: {
       botId: any;
       datasourceId: any;
       datasources: Record<Datesources, any>;
@@ -59,18 +98,15 @@ export class MyBotsService {
       },
     };
 
-    this.clientKafka
-      .emit('normal_job', JSON.stringify(kafkaMessage))
-      .subscribe({
-        next: (result) => {
-          console.log('Message delivered successfully:', result);
-        },
-        error: (error) => {
-          console.error('Error delivering message to Kafka:', error);
-          // Additional error handling logic (e.g., retries)
-        },
-      });
+    try {
+      this.clientProxy.emit('normal_job_queue', rabbitMessage);
+      console.log('Message delivered successfully to RabbitMQ');
+    } catch (error) {
+      console.error('Error delivering message to RabbitMQ:', error);
+      // Additional error handling logic (e.g., retries)
+    }
   }
+
   private generateChecksum(botId: string, secret: string): string {
     return crypto
       .createHmac('sha256', secret)
@@ -224,7 +260,7 @@ export class MyBotsService {
         },
         data: data,
       });
-      this._pushJobToKafka(botId, dataSourceId, data, 'update');
+      this._pushJobToRabbitMQ(botId, dataSourceId, data, 'update');
 
       return updatedDataSource;
     } catch (error) {
@@ -248,7 +284,7 @@ export class MyBotsService {
       const qaData = {
         qANDa_input: updatedData,
       };
-      this._pushJobToKafka(botId, dataSourceId, qaData, 'qa_update');
+      this._pushJobToRabbitMQ(botId, dataSourceId, qaData, 'qa_update');
 
       return updatedDataSource;
     } catch (error) {
@@ -262,7 +298,7 @@ export class MyBotsService {
         data,
       });
 
-      this._pushJobToKafka(
+      this._pushJobToRabbitMQ(
         data.bot_id,
         createdDataSource.datasource_id,
         data,

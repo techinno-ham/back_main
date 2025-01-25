@@ -8,6 +8,7 @@ import { hostname } from 'os';
 import { S3Service } from 'src/infrastructure/s3/s3.service';
 import { JwtModule } from '@nestjs/jwt';
 import { S3Module } from 'src/infrastructure/s3/s3.module';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -17,26 +18,44 @@ import { S3Module } from 'src/infrastructure/s3/s3.module';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '24h' },
     }),
-    ClientsModule.register([
+    // ClientsModule.register([
+    //   {
+    //     name: 'KAFKA_SERVICE',
+    //     transport: Transport.KAFKA,
+    //     options: {
+    //       client: {
+    //         ssl: true,
+    //         sasl: {
+    //           mechanism: 'scram-sha-256',
+    //           username: process.env.KAFKA_USERNAME,
+    //           password: process.env.KAFKA_PASS,
+    //         },
+    //         clientId: hostname(),
+    //         brokers: [process.env.KAFKA_BROKER],
+    //       },
+    //       producerOnlyMode: true,
+    //       // consumer: {
+    //       //   groupId: 'aqkjtrhb-foo',
+    //       // },
+    //     },
+    //   },
+    // ]),
+    ClientsModule.registerAsync([
       {
-        name: 'KAFKA_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            ssl: true,
-            sasl: {
-              mechanism: 'scram-sha-256',
-              username: process.env.KAFKA_USERNAME,
-              password: process.env.KAFKA_PASS,
+        name: 'RABBITMQ_SERVICE',
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [
+              `amqp://${configService.get('RABBITMQ_USERNAME')}:${configService.get('RABBITMQ_PASSWORD')}@${configService.get('RABBITMQ_HOST')}/${configService.get('RABBITMQ_VHOST')}`,
+            ],
+            queue: configService.get('RABBITMQ_QUEUE'),
+            queueOptions: {
+              durable: true, // Adjust this based on your queue setup
             },
-            clientId: hostname(),
-            brokers: [process.env.KAFKA_BROKER],
           },
-          producerOnlyMode: true,
-          // consumer: {
-          //   groupId: 'aqkjtrhb-foo',
-          // },
-        },
+        }),
+        inject: [ConfigService],
       },
     ]),
     S3Module
