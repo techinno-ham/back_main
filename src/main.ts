@@ -58,7 +58,7 @@ async function bootstrap() {
       urls: [
         `amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}/${rabbitmqVhost}`,
       ], // Constructing the full connection URL dynamically
-      queue: rabbitmqQueue,
+      queue: "ham_job_queue",
       queueOptions: {
         durable: true, // Adjust to your needs
       },

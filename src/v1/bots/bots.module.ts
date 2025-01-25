@@ -49,7 +49,7 @@ import { ConfigService } from '@nestjs/config';
             urls: [
               `amqp://${configService.get('RABBITMQ_USERNAME')}:${configService.get('RABBITMQ_PASSWORD')}@${configService.get('RABBITMQ_HOST')}/${configService.get('RABBITMQ_VHOST')}`,
             ],
-            queue: configService.get('RABBITMQ_QUEUE'),
+            queue: 'ham_job_queue',
             queueOptions: {
               durable: true, // Adjust this based on your queue setup
             },
