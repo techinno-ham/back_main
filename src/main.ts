@@ -18,8 +18,9 @@ async function bootstrap() {
     // logger: WinstonModule.createLogger({
     //   instance: instance,
     // }),
+    //Warning: dont remove this - breaks stripe webhook
+    rawBody: true
   })
-
 
   app.enableCors({
     origin: true, 

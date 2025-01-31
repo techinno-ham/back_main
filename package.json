@@ -57,6 +57,7 @@
     "prisma": "^5.22.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "stripe": "^17.6.0",
     "uuid": "^11.0.3",
     "winston": "^3.17.0"
   },

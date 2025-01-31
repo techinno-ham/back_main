@@ -30,20 +30,30 @@ export class TasksService {
   private async removeExpiredSubscriptions(expiredSubscriptions) {
     for (const subscription of expiredSubscriptions) {
       try {
-        const user = await this.prismaService.users.update({
+        // Check if the user's activeSubscriptionId is already null
+        const user = await this.prismaService.users.findUnique({
           where: {
             user_id: subscription.user_id,
           },
-          data: {
-            // subscriptions: {
-            //   disconnect: {
-            //     id: subscription.id,
-            //   },
-            // },
-            activeSubscriptionId: null,
+          select: {
+            activeSubscriptionId: true,
           },
         });
-        this.logger.log(`Removed subscription ${subscription.id} from user ${user.user_id}`);
+  
+        // Only update if activeSubscriptionId is not already null
+        if (user && user.activeSubscriptionId !== null) {
+          await this.prismaService.users.update({
+            where: {
+              user_id: subscription.user_id,
+            },
+            data: {
+              activeSubscriptionId: null,
+            },
+          });
+          this.logger.log(`Removed subscription ${subscription.id} from user ${subscription.user_id}`);
+        } else {
+          this.logger.log(`Skipped user ${subscription.user_id} because activeSubscriptionId is already null`);
+        }
       } catch (error) {
         this.logger.error(`Error removing subscription ${subscription.id}:`, error);
       }

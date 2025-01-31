@@ -24,6 +24,7 @@ import { AppLoggerMiddleware } from './logger.middleware';
 import { LiveModule } from './v1/live/live.module';
 import { FormsModule } from './v1/froms/froms.module';
 import { SocialModule } from './v1/social/social.module';
+import { StripeModule } from './v1/stripe/stripe.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SocialModule } from './v1/social/social.module';
     LiveModule,
     HealthModule,
     SocialModule,
+    StripeModule
   ],
   controllers: [AppController],
   providers: [
