@@ -217,7 +217,7 @@ export class MyBotsService {
     }
   }
 
-  async createBots(userId: string) {
+  async cretaeBots(userId: string) {
     const englishBotNames = [
       'Alex',
       'Emma',
