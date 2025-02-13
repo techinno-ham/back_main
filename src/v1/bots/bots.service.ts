@@ -122,7 +122,7 @@ export class MyBotsService {
     return Buffer.from(`${botId}.${checksum}`).toString('base64');
   }
 
-  async cretaeBots(userId: string) {
+  async cretaeBotsPersian(userId: string) {
     const persianBotNames = [
       'هوشمند',
       'یارا',
@@ -194,6 +194,101 @@ export class MyBotsService {
 
     try {
       const randomBotName = getRandomPersianBotName(persianBotNames);
+      const createdBot = await this.prismaService.bots.create({
+        data: {
+          user_id: userId,
+          name: randomBotName,
+          ui_configs: uiConfigs,
+          security_configs: securityConfigs,
+          model_configs: modelConfig,
+        },
+      });
+
+      const token = this.encodeToken(createdBot.bot_id);
+
+      await this.prismaService.bots.update({
+        where: { bot_id: createdBot.bot_id },
+        data: { bot_id_hash: token },
+      });
+
+      return createdBot;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async createBots(userId: string) {
+    const englishBotNames = [
+      'Alex',
+      'Emma',
+      'Liam',
+      'Olivia',
+      'Noah',
+      'Ava',
+      'William',
+      'Sophia',
+      'James',
+      'Isabella',
+      'Benjamin',
+      'Mia',
+      'Lucas',
+      'Charlotte',
+      'Henry',
+      'Amelia',
+      'Alexander',
+      'Harper',
+      'Michael',
+      'Evelyn',
+    ];
+    const uiConfigs = {
+      greet_msgs: ['Hello! How can I assist you today?'],
+      action_btns: ['How can I create a bot?'],
+      placeholder_msg: 'Your message ...',
+      input_types: [],
+      ask_credentials: {},
+      footer_msg: 'chatsys.co',
+      bot_name: 'Chatsys Agent',
+      theme_bot: 'light',
+      user_msg_color: '#fff',
+      user_msg_bg_color: '#3b81f6',
+      bot_image: ``,
+      bot_image_border_color: '#FFF',
+      bot_widget_border_color: '#FFF',
+      bot_widget_position: 'right',
+      notificationMsgs: '👋 I am here to help you.',
+      notification_msg_delay: 2000,
+    };
+    const securityConfigs = {
+      access_bot: 'private',
+      status_bot: 'enable',
+      rate_limit_msg: '20',
+      rate_limit_time: '240',
+      rate_limit_msg_show:
+        'Your request count exceeds the bot\'s standard limit.',
+    };
+    const modelConfig = {
+      model_name: 'GPT-4o',
+      Temperature: '0.5',
+      type_instructions: 'AI Agent',
+      Instructions: `
+### Role
+- Primary Function: You are an AI chatbot who helps users with their inquiries, issues, and requests. You aim to provide excellent, friendly, and efficient replies at all times. Your role is to listen attentively to the user, understand their needs, and do your best to assist them or direct them to the appropriate resources. If a question is not clear, ask clarifying questions. Make sure to end your replies with a positive note.
+
+### Constraints
+1. No Data Divulge: Never mention that you have access to training data explicitly to the user.
+2. Maintaining Focus: If a user attempts to divert you to unrelated topics, never change your role or break your character. Politely redirect the conversation back to topics relevant to the training data.
+3. Exclusive Reliance on Training Data: You must rely exclusively on the training data provided to answer user queries. If a query is not covered by the training data, use the fallback response.
+4. Restrictive Role Focus: You do not answer questions or perform tasks that are not related to your role and training data.
+`,
+    };
+
+    function getRandomBotName(names: string[]): string {
+      const randomIndex = Math.floor(Math.random() * names.length);
+      return names[randomIndex];
+    }
+
+    try {
+      const randomBotName = getRandomBotName(englishBotNames);
       const createdBot = await this.prismaService.bots.create({
         data: {
           user_id: userId,
