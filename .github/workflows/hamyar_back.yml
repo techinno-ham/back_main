@@ -102,8 +102,8 @@ jobs:
           RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME}}
           RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD}}
           RABBITMQ_VHOST=${{ secrets.RABBITMQ_VHOST}}
-          STRIPE_SECRET_KEY= ${{ secrets.STRIPE_SECRET_KEY}}
-          STRIPE_SECRET_WEBHOOK_KEY= ${{ secrets.STRIPE_SECRET_WEBHOOK_KEY}}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY}}
+          STRIPE_SECRET_WEBHOOK_KEY=${{ secrets.STRIPE_SECRET_WEBHOOK_KEY}}
 
     - name: Log out from Docker Hub
       run: docker logout
