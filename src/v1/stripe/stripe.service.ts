@@ -16,9 +16,15 @@ export class StripeService {
     });
   }
 
-  priceTierMap: Record<string, { tier_name: string; db_id: string }> = {
-    price_1Qmhhb02L9pKqcxp75Syyp7d: { tier_name: 'pro', db_id: '1' },
-    price_124: { tier_name: 'enterprise', db_id: '2' },
+  priceTierMap: Record<string, { tier_name: string; db_id: string , duration: number }> = {
+    //Standard -> MONTHLY
+    price_1R5PhaDz0ulydfrQQsYENg8U: { tier_name: 'pro', db_id: '1' , duration: 1 },
+    //Standard -> YEARLY
+    price_1R5PlPDz0ulydfrQos9UG7mu: { tier_name: 'pro', db_id: '1' , duration: 12 },
+    //Professional -> MONTHLY
+    price_1R5Pi1Dz0ulydfrQ5DBXGXvw: { tier_name: 'enterprise', db_id: '1' , duration: 1 },
+    //Professional -> YEARLY
+    price_1R5PjrDz0ulydfrQGkhznTUk: { tier_name: 'enterprise', db_id: '1' , duration: 12 },
   };
 
   getTierDetails = (priceId: string) => {
@@ -31,8 +37,10 @@ export class StripeService {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: `http://localhost:3000/billing?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:3000/pricing`,
+      // success_url: `http://localhost:3000/billing?session_id={CHECKOUT_SESSION_ID}`,
+      // cancel_url: `http://localhost:3000/pricing`,
+      success_url: `https://chatsys.co/billing?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://chatsys.co/pricing`,
       metadata: { userId, priceId },
     });
 
@@ -67,7 +75,7 @@ export class StripeService {
       }
 
       // Create a new subscription and update the user's activeSubscriptionId
-      await this.updateUserSubscription(userId, tierDetails.db_id);
+      await this.updateUserSubscription(userId, tierDetails.db_id , tierDetails.duration);
     }
 
     return { received: true };
@@ -89,14 +97,14 @@ export class StripeService {
   }
   
 
-  private async updateUserSubscription(userId: string, tierId: string) {
+  private async updateUserSubscription(userId: string, tierId: string , duration:number) {
     const newSubscription = await this.prisma.subscription.create({
       data: {
         user_id: userId,
         tier_id: parseInt(tierId),
         start_date: new Date(),
         end_date: new Date(
-            new Date().setMonth(new Date().getMonth() + 1)
+            new Date().setMonth(new Date().getMonth() + duration)
           ),
         token_usage: 0,
       },
